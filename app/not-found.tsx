@@ -4,7 +4,7 @@ export default function NotFound() {
       <h1 style={{ fontFamily: "var(--font-body)", color: "var(--text)" }}>Note not found</h1>
       <p style={{ color: "var(--text-muted)" }}>
         This note doesn’t exist yet.{" "}
-        <a href="/evergreen" style={{ color: "var(--accent)" }}>
+        <a href="/" style={{ color: "var(--accent)" }}>
           Go home
         </a>
         .

@@ -3,7 +3,7 @@ import { getNodeBySlug, getSlugTitleMap } from "@/lib/notes/queries";
 import { renderNoteBody } from "@/lib/markdown/render";
 import { formatEdited } from "@/lib/util/format";
 
-const HOME_SLUG = "evergreen";
+const HOME_SLUG = "norms";
 
 export default async function Page({
   params,
