@@ -32,7 +32,7 @@ body {
 }
 
 /* === read-view prose (ported from the prototype .note-prose block) === */
-.note-prose p { font-family: var(--font-body); font-size: 16px; line-height: 1.7; color: var(--text-muted); margin: 0 0 1.05em; }
+.note-prose p { font-family: var(--font-body); font-size: 15px; line-height: 1.65; color: var(--text-muted); margin: 0 0 1em; }
 .note-prose p:last-child { margin-bottom: 0; }
 .note-prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; cursor: pointer; transition: color 160ms var(--ease-out), background 160ms var(--ease-out); border-radius: 2px; padding: 0 1px; }
 .note-prose a:hover { color: var(--text); background: rgba(92,58,30,0.09); }
@@ -45,7 +45,7 @@ body {
 .note-prose h2, .note-prose h3, .note-prose h4, .note-prose h5, .note-prose h6 { font-family: var(--font-body); font-weight: 600; color: var(--text); margin: 1.5em 0 .4em; }
 .note-prose h2 { font-size: 20px; } .note-prose h3 { font-size: 18px; } .note-prose h4 { font-size: 16.5px; } .note-prose h5, .note-prose h6 { font-size: 15px; }
 .note-prose ul { margin: .3em 0 .9em; padding-left: 22px; }
-.note-prose li { font-family: var(--font-body); font-size: 16px; line-height: 1.55; color: var(--text-muted); margin: 0 0 .25em; }
+.note-prose li { font-family: var(--font-body); font-size: 15px; line-height: 1.5; color: var(--text-muted); margin: 0 0 .25em; }
 .note-prose blockquote { margin: 0 0 1em; padding-left: 14px; border-left: 3px solid var(--clay); color: var(--text-tertiary); font-style: italic; }
 
 /* === live markdown editor (ported from the prototype) === */

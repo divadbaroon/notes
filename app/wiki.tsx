@@ -15,7 +15,7 @@ type Props = { initialNodes: Note[]; initialStack: string[]; member: Member };
 type State = { stack: string[]; sides: (string | null)[]; popup: Popup | null; editing: string | null; saved: string };
 
 const SPINE = 46;
-const COL = 552;
+const COL = 620;
 const esc = (s: string) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -258,9 +258,22 @@ export default class Wiki extends React.Component<Props, State> {
     const idx = parseInt(root.getAttribute("data-col-root")!, 10);
     const a = t.closest("[data-note]") as HTMLElement | null;
     if (a) { e.preventDefault(); this.openNote(idx, a.getAttribute("data-note")!); return; }
-    if (t.closest("[data-spine]")) this.focusColumn(idx);
+    if (t.closest("[data-spine]")) { this.focusColumn(idx); return; }
+    // click the body (not a link/title/spine) → edit this note (members only)
+    if (this.props.member && this.state.editing !== this.state.stack[idx] && t.closest(".col-content") && !t.closest("h1")) {
+      const slug = this.state.stack[idx];
+      this.setState({ editing: slug }, () => {
+        setTimeout(() => { this.bodyRef.current?.focus(); this.recompute(); }, 60);
+      });
+    }
   }
   handleKey(e: KeyboardEvent) {
+    const mod = e.metaKey || e.ctrlKey;
+    if (mod && (e.key === "o" || e.key === "O")) {
+      e.preventDefault();
+      this.newNote();
+      return;
+    }
     if (e.key === "Escape" && this.state.editing && document.activeElement instanceof HTMLElement)
       document.activeElement.blur();
   }
@@ -514,7 +527,25 @@ export default class Wiki extends React.Component<Props, State> {
     }
     this.hideAC();
     this.save();
-    this.bodyRef.current?.focus();
+    if (item.create && targetSlug) this.openForEdit(targetSlug);
+    else this.bodyRef.current?.focus();
+  }
+  // open a note as a new editing pane, branching from the current one
+  openForEdit(slug: string) {
+    const curSlug = this.state.editing ?? this.state.stack[this.state.stack.length - 1];
+    const srcIdx = this.state.stack.indexOf(curSlug);
+    const base = srcIdx >= 0 ? this.state.stack.slice(0, srcIdx + 1) : this.state.stack.slice();
+    const ns = base.indexOf(slug) >= 0 ? base : [...base, slug];
+    this.setState({ stack: ns, editing: slug, popup: null }, () => {
+      this.pushUrl(ns);
+      this.scrollEnd();
+      setTimeout(() => {
+        this.bindEditor();
+        this._boundEditor = slug;
+        this.titleRef.current?.focus();
+        this.recompute();
+      }, 140);
+    });
   }
   async createNode(title: string): Promise<string> {
     const slug = makeSlug(title, new Set(Object.keys(this.data)));
@@ -541,14 +572,11 @@ export default class Wiki extends React.Component<Props, State> {
 
     return (
       <div style={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "14px 28px", borderBottom: "1px solid var(--card-border)", flexShrink: 0, zIndex: 20 }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "14px 28px", borderBottom: "1px solid var(--card-border)", background: "var(--bg)", flexShrink: 0, zIndex: 20 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 22 }}>
             <span onClick={() => this.openNote(0, stack[0])} style={{ fontFamily: "var(--font-body)", fontStyle: "italic", fontSize: 19, color: "var(--text)", cursor: "pointer" }}>
               Papert Lab wiki
             </span>
-            <button className="newbtn" onClick={() => this.newNote()} style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--text-tertiary)", background: "transparent", border: "1px solid var(--card-border)", borderRadius: 5, padding: "4px 10px", cursor: "pointer", letterSpacing: 0.2 }}>
-              New note
-            </button>
             {saved && <span style={{ fontFamily: "var(--font-sans)", fontSize: 11, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--text-tertiary)" }}>{saved}</span>}
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
@@ -585,7 +613,7 @@ export default class Wiki extends React.Component<Props, State> {
                   {isEditing ? (
                     <>
                       <input ref={this.titleRef} className="ed-title" type="text" placeholder="Untitled note" style={{ width: "100%", boxSizing: "border-box", border: "none", outline: "none", background: "transparent", fontFamily: "var(--font-body)", fontSize: 28, fontWeight: 400, color: "var(--text)", lineHeight: 1.2, margin: "0 0 16px", letterSpacing: "-0.01em" }} />
-                      <div ref={this.bodyRef} className="md-editor" contentEditable suppressContentEditableWarning data-placeholder="Start writing in Markdown… type @ to link a note" style={{ minHeight: "60vh", fontFamily: "var(--font-body)", fontSize: 16, lineHeight: 1.72, color: "var(--text-muted)" }} />
+                      <div ref={this.bodyRef} className="md-editor" contentEditable suppressContentEditableWarning data-placeholder="Start writing in Markdown… type @ to link a note" style={{ minHeight: "60vh", fontFamily: "var(--font-body)", fontSize: 15, lineHeight: 1.65, color: "var(--text-muted)" }} />
                     </>
                   ) : (
                     <>
@@ -594,7 +622,6 @@ export default class Wiki extends React.Component<Props, State> {
                       </h1>
                       <div style={{ fontFamily: "var(--font-sans)", fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 22, display: "flex", gap: 14 }}>
                         {note.updated_at && <span>last edited {new Date(note.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}</span>}
-                        {member && <button onClick={() => this.setState({ editing: slug }, () => this.recompute())} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", font: "inherit", textTransform: "uppercase", letterSpacing: 0.5 }}>edit</button>}
                       </div>
                       <div className="note-prose" dangerouslySetInnerHTML={{ __html: html }} />
                       {backlinks.length > 0 && (
