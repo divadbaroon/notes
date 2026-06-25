@@ -91,3 +91,25 @@ export function renderNoteBody(md: string, titles: SlugTitle = {}): string {
   closeLists(0);
   return html;
 }
+
+export type ExtractedLink = { slug: string; display: string | null; position: number };
+
+/** Pull internal links (`[[slug]]` and `[alias](slug)`) out of markdown for link materialization.
+ *  External links (`http(s)://…`) are ignored. */
+export function extractLinks(md: string): ExtractedLink[] {
+  const out: ExtractedLink[] = [];
+  const re = /(\[\[([^\]\n|]+)\]\])|(\[([^\]\n]*)\]\(([^)\n]+)\))/g;
+  let m: RegExpExecArray | null;
+  let pos = 0;
+  while ((m = re.exec(md))) {
+    if (m[2] !== undefined) {
+      out.push({ slug: m[2].trim(), display: null, position: pos++ });
+    } else if (m[5] !== undefined) {
+      const target = m[5].trim();
+      if (!/^[a-z]+:\/\//i.test(target)) {
+        out.push({ slug: target, display: (m[4] || "").trim() || null, position: pos++ });
+      }
+    }
+  }
+  return out;
+}
