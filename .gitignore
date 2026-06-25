@@ -42,3 +42,6 @@ yarn-error.log*
 # supabase
 /supabase/.branches
 /supabase/.temp
+
+# local dev db-apply helper (never committed)
+/_apply.mjs
