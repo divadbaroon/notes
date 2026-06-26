@@ -3,8 +3,9 @@ export type SlugTitle = Record<string, string>;
 const esc = (s: string) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+// image first (superset of the link pattern), then wiki-link, link, bold, italic, code
 const INLINE_RE =
-  /(\[\[[^\]\n]+\]\])|(\[[^\]\n]*\]\([^)\n]*\))|(\*\*[^*\n]+\*\*)|(\*[^*\n]+\*)|(`[^`\n]+`)/g;
+  /(!\[[^\]\n]*\]\([^)\n]*\))|(\[\[[^\]\n]+\]\])|(\[[^\]\n]*\]\([^)\n]*\))|(\*\*[^*\n]+\*\*)|(\*[^*\n]+\*)|(`[^`\n]+`)/g;
 
 export function renderInline(s: string, titles: SlugTitle = {}): string {
   let out = "";
@@ -15,10 +16,15 @@ export function renderInline(s: string, titles: SlugTitle = {}): string {
     out += esc(s.slice(last, m.index));
     const tok = m[0];
     if (m[1]) {
+      const lb = tok.indexOf("](");
+      const alt = tok.slice(2, lb);
+      const src = tok.slice(lb + 2, -1).trim();
+      out += `<img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" />`;
+    } else if (m[2]) {
       const slug = tok.slice(2, -2).trim();
       const title = titles[slug] ?? slug;
       out += `<a href="/${esc(slug)}" data-slug="${esc(slug)}">${esc(title)}</a>`;
-    } else if (m[2]) {
+    } else if (m[3]) {
       const lb = tok.indexOf("](");
       const display = tok.slice(1, lb);
       const target = tok.slice(lb + 2, -1);
@@ -30,9 +36,9 @@ export function renderInline(s: string, titles: SlugTitle = {}): string {
       } else {
         out += `<a href="/${esc(target)}" data-slug="${esc(target)}" data-missing="1">${esc(display || target)}</a>`;
       }
-    } else if (m[3]) out += `<strong>${esc(tok.slice(2, -2))}</strong>`;
-    else if (m[4]) out += `<em>${esc(tok.slice(1, -1))}</em>`;
-    else if (m[5]) out += `<code>${esc(tok.slice(1, -1))}</code>`;
+    } else if (m[4]) out += `<strong>${esc(tok.slice(2, -2))}</strong>`;
+    else if (m[5]) out += `<em>${esc(tok.slice(1, -1))}</em>`;
+    else if (m[6]) out += `<code>${esc(tok.slice(1, -1))}</code>`;
     last = INLINE_RE.lastIndex;
   }
   out += esc(s.slice(last));
@@ -105,6 +111,8 @@ export function extractLinks(md: string): ExtractedLink[] {
     if (m[2] !== undefined) {
       out.push({ slug: m[2].trim(), display: null, position: pos++ });
     } else if (m[5] !== undefined) {
+      // skip image embeds: `![alt](src)` — the "[..](..)" is preceded by "!"
+      if (md[m.index - 1] === "!") continue;
       const target = m[5].trim();
       if (!/^[a-z]+:\/\//i.test(target)) {
         out.push({ slug: target, display: (m[4] || "").trim() || null, position: pos++ });

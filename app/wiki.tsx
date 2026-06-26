@@ -4,7 +4,7 @@ import React from "react";
 import type { Note } from "@/lib/notes/types";
 import { renderNoteBody } from "@/lib/markdown/render";
 import { renderLiveMarkdown } from "@/lib/markdown/live";
-import { saveNode, signOut, makeSlug } from "@/lib/notes/client";
+import { saveNode, signOut, makeSlug, uploadImage } from "@/lib/notes/client";
 
 type Member = { userId: string; username: string } | null;
 type Popup = { slug: string; src: number; top: number; left: number; h: number };
@@ -27,6 +27,7 @@ export default class Wiki extends React.Component<Props, State> {
   _acEl: HTMLDivElement | null = null;
   _ac: AC | null = null;
   _boundEditor: string | null = null;
+  _activeLine = -1;
   _hideT: ReturnType<typeof setTimeout> | undefined;
   _saveT: ReturnType<typeof setTimeout> | undefined;
   _onScroll = () => this.recompute();
@@ -325,6 +326,29 @@ export default class Wiki extends React.Component<Props, State> {
     const sl = window.getSelection(); sl?.removeAllRanges(); sl?.addRange(r);
   }
   setCaret(el: HTMLElement, p: number) { this.setSel(el, p, p); }
+  // zero-based index of the line containing character offset `offset`
+  lineOf(text: string, offset: number) {
+    return (text.slice(0, offset).match(/\n/g) || []).length;
+  }
+  // re-render the editor body with the caret's line revealed, then restore the caret
+  renderBody(text: string, caret: number) {
+    const el = this.bodyRef.current;
+    if (!el) return;
+    this._activeLine = this.lineOf(text, caret);
+    el.innerHTML = renderLiveMarkdown(text, this._activeLine);
+    this.setCaret(el, caret);
+  }
+  // collapse the line the caret just left when it moves to a different line
+  onCaretMove() {
+    const el = this.bodyRef.current;
+    if (!el || this._ac?.open) return;
+    const sel = window.getSelection();
+    if (!sel || !sel.isCollapsed) return; // never disturb an active selection
+    const { start } = this.caretOffsets(el);
+    const text = el.textContent || "";
+    if (this.lineOf(text, start) === this._activeLine) return; // same line → no churn
+    this.renderBody(text, start);
+  }
 
   // ---- editor binding ----
   bindEditor() {
@@ -332,12 +356,17 @@ export default class Wiki extends React.Component<Props, State> {
     if (!el) return;
     el.oninput = () => this.onBodyInput();
     el.onkeydown = (e) => this.onBodyKey(e);
-    el.onpaste = (e) => {
-      e.preventDefault();
-      const txt = e.clipboardData?.getData("text") || "";
-      this.insertText(txt);
+    el.onkeyup = () => this.onCaretMove();
+    el.onmouseup = () => this.onCaretMove();
+    el.onpaste = (e) => this.onPaste(e);
+    el.ondrop = (e) => this.onDrop(e);
+    el.ondragover = (e) => e.preventDefault();
+    el.onblur = () => {
+      setTimeout(() => this.hideAC(), 160);
+      // collapse every line's markers once the caret leaves the editor
+      this._activeLine = -1;
+      el.innerHTML = renderLiveMarkdown(el.textContent || "", -1);
     };
-    el.onblur = () => setTimeout(() => this.hideAC(), 160);
     if (this.titleRef.current) {
       this.titleRef.current.oninput = () => this.save();
       this.titleRef.current.onkeydown = (e) => {
@@ -349,8 +378,7 @@ export default class Wiki extends React.Component<Props, State> {
     const el = this.bodyRef.current!;
     const { start } = this.caretOffsets(el);
     const text = el.textContent || "";
-    el.innerHTML = renderLiveMarkdown(text);
-    this.setCaret(el, start);
+    this.renderBody(text, start);
     this.save();
     this.checkAutocomplete(text, start);
   }
@@ -372,10 +400,55 @@ export default class Wiki extends React.Component<Props, State> {
     const { start, end } = this.caretOffsets(el);
     const text = el.textContent || "";
     const nt = text.slice(0, start) + t + text.slice(end);
-    el.innerHTML = renderLiveMarkdown(nt);
-    this.setCaret(el, start + t.length);
+    this.renderBody(nt, start + t.length);
     this.save();
     if (t === "\n") this.hideAC();
+  }
+
+  // ---- images: paste or drop a file → upload → insert ![alt](url) ----
+  imageFilesFrom(dt: DataTransfer | null): File[] {
+    if (!dt || !dt.files || !dt.files.length) return [];
+    return Array.from(dt.files).filter((f) => f.type.startsWith("image/"));
+  }
+  onPaste(e: ClipboardEvent) {
+    e.preventDefault();
+    const imgs = this.imageFilesFrom(e.clipboardData);
+    if (imgs.length) { this.insertImages(imgs); return; }
+    this.insertText(e.clipboardData?.getData("text") || "");
+  }
+  onDrop(e: DragEvent) {
+    const imgs = this.imageFilesFrom(e.dataTransfer);
+    if (!imgs.length) return;
+    e.preventDefault();
+    this.bodyRef.current?.focus();
+    this.insertImages(imgs);
+  }
+  async insertImages(files: File[]) {
+    for (const file of files) {
+      const token = `![uploading ${file.name}…]()`;
+      this.insertText(token); // optimistic placeholder at the caret
+      this.setState({ saved: "Uploading image…" });
+      const swap = (replacement: string) => {
+        const el = this.bodyRef.current;
+        if (!el) return;
+        const text = el.textContent || "";
+        const idx = text.indexOf(token);
+        if (idx < 0) return; // user removed it mid-flight
+        const nt = text.slice(0, idx) + replacement + text.slice(idx + token.length);
+        this.renderBody(nt, idx + replacement.length);
+        this.save();
+      };
+      try {
+        const url = await uploadImage(file);
+        const alt = file.name.replace(/\.[^.]+$/, "");
+        swap(`![${alt}](${url})`);
+        this.setState({ saved: "Saved" });
+      } catch (err) {
+        console.error("[wiki] image upload failed", err);
+        swap(""); // drop the placeholder so a failed upload isn't saved
+        this.setState({ saved: "Image upload failed" });
+      }
+    }
   }
   wrap(pre: string, post: string) {
     const el = this.bodyRef.current!;
@@ -383,7 +456,8 @@ export default class Wiki extends React.Component<Props, State> {
     const text = el.textContent || "";
     const sel = text.slice(start, end);
     const nt = text.slice(0, start) + pre + sel + post + text.slice(end);
-    el.innerHTML = renderLiveMarkdown(nt);
+    this._activeLine = this.lineOf(nt, start);
+    el.innerHTML = renderLiveMarkdown(nt, this._activeLine);
     if (sel) this.setSel(el, start + pre.length, end + pre.length);
     else this.setCaret(el, start + pre.length);
     this.save();
@@ -395,9 +469,8 @@ export default class Wiki extends React.Component<Props, State> {
     const sel = text.slice(start, end);
     const ins = "[" + sel + "]()";
     const nt = text.slice(0, start) + ins + text.slice(end);
-    el.innerHTML = renderLiveMarkdown(nt);
     const paren = start + 1 + sel.length + 2;
-    this.setCaret(el, paren);
+    this.renderBody(nt, paren);
     this.save();
     this.checkAutocomplete(el.textContent || "", paren);
   }
@@ -517,13 +590,11 @@ export default class Wiki extends React.Component<Props, State> {
       const linkStart = bracketOpen >= 0 ? bracketOpen : from;
       const newLink = "[" + finalDisplay + "](" + targetSlug + ")";
       const nt = text.slice(0, linkStart) + newLink + text.slice(cur.start + 1);
-      el.innerHTML = renderLiveMarkdown(nt);
-      this.setCaret(el, linkStart + newLink.length);
+      this.renderBody(nt, linkStart + newLink.length);
     } else {
       const ins = "[[" + targetSlug + "]] ";
       const nt = text.slice(0, from) + ins + text.slice(cur.start);
-      el.innerHTML = renderLiveMarkdown(nt);
-      this.setCaret(el, from + ins.length);
+      this.renderBody(nt, from + ins.length);
     }
     this.hideAC();
     this.save();

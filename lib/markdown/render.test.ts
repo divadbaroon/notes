@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { renderNoteBody } from "./render";
+import { renderNoteBody, extractLinks } from "./render";
 
 const titles = { evergreen: "Evergreen notes", insight: "Insight accumulates" };
 
@@ -40,5 +40,26 @@ describe("renderNoteBody", () => {
 
   it("escapes HTML in text", () => {
     expect(renderNoteBody("a < b & c")).toBe("<p>a &lt; b &amp; c</p>");
+  });
+
+  it("renders an image embed as <img>, not a link", () => {
+    expect(renderNoteBody("![a turtle](https://x.co/t.png)")).toBe(
+      '<p><img src="https://x.co/t.png" alt="a turtle" loading="lazy" /></p>'
+    );
+  });
+
+  it("does not confuse an image with a following link", () => {
+    expect(renderNoteBody("![pic](https://x.co/p.png) and [site](https://y.co)")).toBe(
+      '<p><img src="https://x.co/p.png" alt="pic" loading="lazy" /> and ' +
+        '<a href="https://y.co" target="_blank" rel="noopener">site</a></p>'
+    );
+  });
+});
+
+describe("extractLinks", () => {
+  it("ignores image embeds (does not materialize them as internal links)", () => {
+    expect(extractLinks("![alt](some-slug) and [[real]]")).toEqual([
+      { slug: "real", display: null, position: 0 },
+    ]);
   });
 });

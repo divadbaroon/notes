@@ -20,3 +20,12 @@ export async function getSlugTitleMap(): Promise<Record<string, string>> {
   });
   return map;
 }
+
+export type NoteListItem = { slug: string; title: string; updated_at: string };
+
+/** All notes as lightweight {slug,title,updated_at} rows for the index/listing page. */
+export async function getAllNotesList(): Promise<NoteListItem[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("nodes").select("slug,title,updated_at");
+  return (data as NoteListItem[]) ?? [];
+}
