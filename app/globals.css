@@ -49,6 +49,107 @@ body {
 .note-prose blockquote { margin: 0 0 1em; padding-left: 14px; border-left: 3px solid var(--clay); color: var(--text-tertiary); font-style: italic; }
 .note-prose img { display: block; max-width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--card-border); margin: 0.6em 0 1em; }
 
+/* === /session essay pane: reading-typography refinements (scoped; base still .note-prose) === */
+.session-prose p { font-size: 17px; line-height: 1.75; color: #504840; margin: 0 0 1.15em; }
+.session-prose li { font-size: 17px; line-height: 1.7; color: #504840; }
+.session-prose h2, .session-prose h3, .session-prose h4, .session-prose h5, .session-prose h6 { margin: 2.5em 0 0.75em; }
+.session-prose > :first-child { margin-top: 0; }
+/* byline — the lone italic-only paragraph under the title */
+.session-prose p em:only-child { font-family: var(--font-body); font-style: italic; color: var(--text-tertiary); }
+/* passage anchors — thin dotted underline, clickable, briefly flashed when their card is clicked */
+.session-prose u[id^="anchor-"] { font-weight: 400; text-decoration: underline dotted; text-decoration-color: var(--clay); text-decoration-thickness: 2px; text-underline-offset: 3px; cursor: pointer; transition: background 300ms ease; border-radius: 2px; }
+.session-prose u[id^="anchor-"].anchor-flash { background: rgba(184,137,63,0.30); }
+/* section headings flash too (thoughts anchored to a section, not a passage) */
+.session-prose :is(h2,h3,h4,h5,h6).anchor-flash { background: rgba(184,137,63,0.30); border-radius: 3px; transition: background 300ms ease; }
+/* a highlighted (free-form) quote flashes via the CSS Custom Highlight API */
+::highlight(thought-flash) { background-color: rgba(184,137,63,0.32); color: inherit; }
+
+/* === /session paginated "book" (the essay pane turns page by page) === */
+.book-leaf { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.book-runhead { flex-shrink: 0; height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 8px 40px 0; font: 10.5px/1 var(--font-sans); letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-tertiary); box-sizing: border-box; }
+.book-runhead .book-sec { color: var(--brass); text-align: right; max-width: 62%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.book-fade { position: relative; flex: 1; min-height: 0; transition: opacity 120ms var(--ease-out); }
+.book-fade.book-turning { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .book-fade { transition: none; } }
+
+.book-viewport { position: absolute; inset: 0; overflow: hidden; padding: 22px 0; box-sizing: border-box; }
+.book-pageshift { will-change: transform; }
+.book-article { width: 100%; max-width: 60ch; margin: 0 auto; padding: 0 40px; box-sizing: border-box; }
+.book-mask { position: absolute; left: 0; right: 0; bottom: 0; background: var(--card-bg); z-index: 2; pointer-events: none; }
+
+.book-cover { position: absolute; inset: 0; z-index: 3; background: var(--card-bg); display: flex; flex-direction: column; padding: 8% 12% 7%; box-sizing: border-box; }
+.book-cover-eyebrow, .book-cover-issue { display: flex; align-items: baseline; gap: 12px; font: 600 12px/1 var(--font-sans); letter-spacing: 0.3em; text-transform: uppercase; }
+.book-cover-eyebrow { color: var(--clay); }
+.book-cover-issue { color: var(--text-tertiary); margin-bottom: 16px; }
+.book-cover-eyebrow .r, .book-cover-issue .r { flex: 1; height: 1px; background: var(--rule); transform: translateY(-4px); }
+.book-cover-title { margin: 7% 0 0; font: 400 clamp(36px, 7.4vw, 58px)/1.04 var(--font-body); letter-spacing: -0.018em; color: var(--text); text-wrap: balance; }
+.book-cover-lab { margin-top: 18px; font: 600 13px/1 var(--font-sans); letter-spacing: 0.34em; text-transform: uppercase; color: var(--text-tertiary); }
+.book-cover-spacer { flex: 1; }
+.book-cover-feature { margin: 0; font: italic 400 clamp(21px, 3.6vw, 29px)/1.24 var(--font-body); letter-spacing: -0.01em; color: var(--accent); text-wrap: balance; }
+.book-cover-byline { margin-top: 16px; font: 14px/1 var(--font-sans); color: var(--text-muted); }
+.book-cover-foot { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; font: 11px/1 var(--font-sans); letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-tertiary); }
+
+.book-foot { flex-shrink: 0; height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 18px; border-top: 1px solid var(--card-border); }
+.book-turn { appearance: none; background: none; border: 1px solid var(--card-border); color: var(--text-tertiary); border-radius: 999px; padding: 8px 14px; font: 12px/1 var(--font-sans); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: color 140ms var(--ease-out), border-color 140ms var(--ease-out), background 140ms var(--ease-out); }
+.book-turn:hover:not(:disabled) { color: var(--text); border-color: var(--text-tertiary); background: rgba(61,38,21,0.05); }
+.book-turn:disabled { opacity: 0.3; cursor: default; }
+.book-folio { flex: 1; text-align: center; font: 11px/1 var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+/* prominent "Next page" control — the main way to move through the book */
+.book-next { appearance: none; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); border-radius: 999px; padding: 9px 18px; font: 600 12.5px/1 var(--font-sans); letter-spacing: 0.03em; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 2px 9px rgba(92,58,30,0.26); transition: background 140ms var(--ease-out), box-shadow 140ms var(--ease-out), transform 60ms var(--ease-out); }
+.book-next:hover:not(:disabled) { background: #4a2f18; box-shadow: 0 4px 15px rgba(92,58,30,0.34); }
+.book-next:active:not(:disabled) { transform: translateY(1px); }
+.book-next:disabled { opacity: 0.32; cursor: default; box-shadow: none; }
+.book-next .arw { font-size: 16px; line-height: 1; }
+
+/* the thought-stream "+ Add thought" pill */
+.add-thought-btn { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font: 12px/1 var(--font-sans); color: var(--text-muted); background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 999px; padding: 6px 13px; cursor: pointer; transition: color 150ms var(--ease-out), background 150ms var(--ease-out), border-color 150ms var(--ease-out); }
+.add-thought-btn:hover { color: var(--accent); border-color: var(--accent); }
+.add-thought-btn.open { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.add-thought-btn .plus { font-size: 15px; line-height: 1; margin-top: -1px; }
+.stream-ghost { font: 12px/1 var(--font-sans); color: var(--text-tertiary); background: none; border: none; cursor: pointer; padding: 6px 4px; border-radius: 5px; transition: color 150ms var(--ease-out); }
+.stream-ghost:hover { color: var(--text); }
+
+/* === /session layout: two panes on desktop, book + drawer on mobile === */
+.session-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 28px; border-bottom: 1px solid var(--card-border); flex-shrink: 0; }
+.session-title { font-family: var(--font-body); font-style: italic; font-size: 19px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.session-eyebrow { font: 11px/1 var(--font-sans); letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-tertiary); flex-shrink: 0; }
+.session-hamburger { display: none; } /* desktop: no hamburger */
+.session-stream-close { display: none; } /* desktop: no close button */
+
+.session-panes { flex: 1; display: flex; overflow: hidden; width: 100%; max-width: 1280px; margin: 0 auto; gap: 40px; min-height: 0; }
+.session-book { flex-grow: 62; flex-basis: 0; min-width: 0; background: var(--card-bg); display: flex; flex-direction: column; overflow: hidden; }
+.session-stream { flex-grow: 38; flex-basis: 0; min-width: 0; display: flex; flex-direction: column; border-left: 1px solid var(--card-border); background: var(--bg); overflow: hidden; }
+.session-backdrop { display: none; }
+
+@media (max-width: 768px) {
+  .session-header { padding: 12px 16px; }
+  .session-title { font-size: 14px; }
+  .session-eyebrow { display: none; }
+
+  /* hamburger button (three bars) */
+  .session-hamburger { display: inline-flex; flex-direction: column; justify-content: center; gap: 4px; width: 42px; height: 34px; flex-shrink: 0; padding: 0 9px; background: none; border: 1px solid var(--card-border); border-radius: 9px; cursor: pointer; }
+  .session-hamburger span { display: block; height: 2px; width: 100%; background: var(--text); border-radius: 2px; }
+  .session-hamburger:active { background: rgba(61,38,21,0.06); }
+
+  .session-panes { max-width: 100%; gap: 0; }
+  .session-book { flex: 1 1 auto; }
+
+  /* thought stream becomes a right-side drawer */
+  .session-stream { position: fixed; top: 0; right: 0; bottom: 0; width: min(90vw, 400px); flex: 0 0 auto; z-index: 60; transform: translateX(101%); transition: transform 260ms var(--ease-out); box-shadow: -14px 0 44px rgba(61,38,21,0.28); }
+  .session-stream.open { transform: translateX(0); }
+
+  .session-backdrop { display: block; position: fixed; inset: 0; background: rgba(30,20,12,0.34); z-index: 55; opacity: 0; pointer-events: none; transition: opacity 260ms var(--ease-out); }
+  .session-backdrop.open { opacity: 1; pointer-events: auto; }
+
+  /* close (×) button inside the drawer header */
+  .session-stream-close { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-left: 2px; background: none; border: none; border-radius: 6px; font-size: 22px; line-height: 1; color: var(--text-tertiary); cursor: pointer; }
+  .session-stream-close:active { background: rgba(61,38,21,0.06); color: var(--text); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-stream, .session-backdrop { transition: none; }
+}
+
 /* === live markdown editor (ported from the prototype) === */
 .ed-title::placeholder { color: var(--text-tertiary); opacity: 1; }
 .md-editor:empty:before { content: attr(data-placeholder); color: var(--text-tertiary); pointer-events: none; }

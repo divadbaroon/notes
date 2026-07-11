@@ -3,9 +3,12 @@ export type SlugTitle = Record<string, string>;
 const esc = (s: string) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-// image first (superset of the link pattern), then wiki-link, link, bold, italic, code
+// image first (superset of the link pattern), then wiki-link, link, bold, italic, code, and
+// a tightly-constrained passthrough for essay passage anchors (<u id="anchor-…"> / </u>).
+// The <u> pattern only allows an optional id="anchor-…" attribute — no other attributes or
+// event handlers — so it stays safe to run over arbitrary user note content too.
 const INLINE_RE =
-  /(!\[[^\]\n]*\]\([^)\n]*\))|(\[\[[^\]\n]+\]\])|(\[[^\]\n]*\]\([^)\n]*\))|(\*\*[^*\n]+\*\*)|(\*[^*\n]+\*)|(`[^`\n]+`)/g;
+  /(!\[[^\]\n]*\]\([^)\n]*\))|(\[\[[^\]\n]+\]\])|(\[[^\]\n]*\]\([^)\n]*\))|(\*\*[^*\n]+\*\*)|(\*[^*\n]+\*)|(`[^`\n]+`)|(<u(?: id="anchor-[a-z0-9-]+")?>|<\/u>)/g;
 
 export function renderInline(s: string, titles: SlugTitle = {}): string {
   let out = "";
@@ -39,6 +42,7 @@ export function renderInline(s: string, titles: SlugTitle = {}): string {
     } else if (m[4]) out += `<strong>${esc(tok.slice(2, -2))}</strong>`;
     else if (m[5]) out += `<em>${esc(tok.slice(1, -1))}</em>`;
     else if (m[6]) out += `<code>${esc(tok.slice(1, -1))}</code>`;
+    else if (m[7]) out += tok; // constrained <u id="anchor-…"> / </u> passthrough
     last = INLINE_RE.lastIndex;
   }
   out += esc(s.slice(last));

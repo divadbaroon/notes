@@ -1,0 +1,50 @@
+[
+  {
+    "id": "t1",
+    "author": "Amara",
+    "timestamp": "2026-07-11T11:12:00",
+    "text": "The numerals argument feels like survivorship bias — we only know Hindu-Arabic numerals were the right answer because they won. A designer 'immersing themselves in the field' might have produced something equally good that we can't imagine now.",
+    "essayAnchor": "anchor-t1",
+    "parentId": null
+  },
+  {
+    "id": "t2",
+    "author": "Julian",
+    "timestamp": "2026-07-11T11:15:00",
+    "text": "But that's kind of their point — the leap required mathematical insight, not design process. The counterfactual designer doesn't get there by interviewing tax collectors no matter how good they are.",
+    "essayAnchor": null,
+    "parentId": "t1"
+  },
+  {
+    "id": "t3",
+    "author": "Priya",
+    "timestamp": "2026-07-11T11:18:00",
+    "text": "This maps onto research tooling — the instruments that actually changed our lab came from people doing the research, not from vendors who interviewed us.",
+    "essayAnchor": null,
+    "parentId": "t2"
+  },
+  {
+    "id": "t4",
+    "author": "Theo",
+    "timestamp": "2026-07-11T11:24:00",
+    "text": "The Logo critique is harsher than it looks. If the test is 'do practitioners use it,' most educational tools fail. But maybe tools for learning a subject and tools for doing it are just different categories?",
+    "essayAnchor": "anchor-t4",
+    "parentId": null
+  },
+  {
+    "id": "t5",
+    "author": "Amara",
+    "timestamp": "2026-07-11T11:27:00",
+    "text": "The floor/ceiling defense they dismiss actually deserves more credit — Scratch has a low ceiling too and it's still how a huge share of programmers started.",
+    "essayAnchor": null,
+    "parentId": "t4"
+  },
+  {
+    "id": "t6",
+    "author": "Nadia",
+    "timestamp": "2026-07-11T11:29:00",
+    "text": "Their own test cuts against them though — is the mnemonic medium used by serious practitioners, or is it Matuschak and Nielsen's Logo?",
+    "essayAnchor": "anchor-t6",
+    "parentId": "t4"
+  }
+]
