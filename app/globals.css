@@ -152,12 +152,10 @@ body {
   .book-runhead > span:first-child { display: none; }
   .book-runhead .book-sec { max-width: 100%; text-align: left; }
 
-  /* cover: on a tall phone the desktop top/bottom split leaves a big empty middle — center the
-     whole composition as one balanced title card, with a modest gap instead of a huge void */
-  .book-cover { justify-content: center; padding: 20px 26px 26px; }
-  .book-cover-title { margin-top: 18px; }
-  .book-cover-spacer { flex: 0 0 auto; height: 30px; }
-  .book-cover-foot { margin-top: 22px; }
+  /* cover on mobile: keep the spread-out magazine layout (title up top, "in this issue" toward
+     the foot, via the flex:1 spacer) — just tighten the side margins so the big title fits the
+     narrow width. */
+  .book-cover { padding: 30px 26px 28px; }
 
   /* thought stream becomes a right-side drawer */
   .session-stream { position: fixed; top: 0; right: 0; bottom: 0; width: min(90vw, 400px); flex: 0 0 auto; z-index: 60; transform: translateX(101%); transition: transform 260ms var(--ease-out); box-shadow: -14px 0 44px rgba(61,38,21,0.28); }
