@@ -1,50 +1,182 @@
 [
   {
-    "id": "t1",
-    "author": "Amara",
-    "timestamp": "2026-07-11T11:12:00",
-    "text": "The numerals argument feels like survivorship bias — we only know Hindu-Arabic numerals were the right answer because they won. A designer 'immersing themselves in the field' might have produced something equally good that we can't imagine now.",
-    "essayAnchor": "anchor-t1",
-    "parentId": null
-  },
-  {
-    "id": "t2",
-    "author": "Julian",
-    "timestamp": "2026-07-11T11:15:00",
-    "text": "But that's kind of their point — the leap required mathematical insight, not design process. The counterfactual designer doesn't get there by interviewing tax collectors no matter how good they are.",
+    "id": "00095c00-cb1f-4fe8-8a29-2ba68e469f99",
+    "author": "Moonwara",
+    "timestamp": "2026-07-11T11:36:57",
+    "text": "How to account all children interests or it is only for particular types of children",
     "essayAnchor": null,
-    "parentId": "t1"
+    "parentId": null,
+    "quote": "In essence, children could learn differential geometry by going to Mathland."
   },
   {
-    "id": "t3",
-    "author": "Priya",
-    "timestamp": "2026-07-11T11:18:00",
-    "text": "This maps onto research tooling — the instruments that actually changed our lab came from people doing the research, not from vendors who interviewed us.",
+    "id": "7fecc89c-2e40-48a5-b2e3-3cfcbcf7137f",
+    "author": "David",
+    "timestamp": "2026-07-11T11:37:49",
+    "text": "Amusement parks provide variety of rides (slow vs fast) for different interests. These environments must adapt to user interests/ learning styles",
     "essayAnchor": null,
-    "parentId": "t2"
+    "parentId": "00095c00-cb1f-4fe8-8a29-2ba68e469f99",
+    "quote": null
   },
   {
-    "id": "t4",
-    "author": "Theo",
-    "timestamp": "2026-07-11T11:24:00",
-    "text": "The Logo critique is harsher than it looks. If the test is 'do practitioners use it,' most educational tools fail. But maybe tools for learning a subject and tools for doing it are just different categories?",
-    "essayAnchor": "anchor-t4",
-    "parentId": null
-  },
-  {
-    "id": "t5",
-    "author": "Amara",
-    "timestamp": "2026-07-11T11:27:00",
-    "text": "The floor/ceiling defense they dismiss actually deserves more credit — Scratch has a low ceiling too and it's still how a huge share of programmers started.",
+    "id": "f724efe8-2809-4a88-ad08-764fa7a61858",
+    "author": "Moonwara",
+    "timestamp": "2026-07-11T11:38:26",
+    "text": "We need to connect children's world (animals, objects, shapes, space, toys, etc.)",
     "essayAnchor": null,
-    "parentId": "t4"
+    "parentId": "7fecc89c-2e40-48a5-b2e3-3cfcbcf7137f",
+    "quote": null
   },
   {
-    "id": "t6",
-    "author": "Nadia",
-    "timestamp": "2026-07-11T11:29:00",
-    "text": "Their own test cuts against them though — is the mnemonic medium used by serious practitioners, or is it Matuschak and Nielsen's Logo?",
-    "essayAnchor": "anchor-t6",
-    "parentId": "t4"
+    "id": "24d7fb0b-abc3-414c-a960-03244905bf2d",
+    "author": "David",
+    "timestamp": "2026-07-11T11:39:04",
+    "text": "Love the idea of making learning a play environment/ park",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "\"Mathland\""
+  },
+  {
+    "id": "a84b33bd-17d4-4d22-a121-fff640cec8be",
+    "author": "David",
+    "timestamp": "2026-07-11T11:39:48",
+    "text": "Not interested in coming up with next big tool, rather helping people (children)",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "helping children learn how to program"
+  },
+  {
+    "id": "f03a294d-0d95-4b1f-821b-212aea089b88",
+    "author": "Moonwara",
+    "timestamp": "2026-07-11T11:41:02",
+    "text": "We must collaborate with wide range of people (i.e. domain experts, educators, children, general users, instructors etc.)",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "How would he even have known what to include?"
+  },
+  {
+    "id": "c291da37-3e4e-4425-9751-665e2ad51ce9",
+    "author": "David",
+    "timestamp": "2026-07-11T11:42:08",
+    "text": "Should be adapted based on users interests/ learning style, expertise",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "It's to talk about the \"floor\" and \"ceiling\" of different environments for thought. In this account,"
+  },
+  {
+    "id": "7c694fcb-a78c-4dfa-b1b0-8841b32a339f",
+    "author": "Moonwara",
+    "timestamp": "2026-07-11T11:43:03",
+    "text": "What's the purpose/ objective of making the tool",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "What's the criterion for success?"
+  },
+  {
+    "id": "aeb23cab-4282-4eb5-a0ba-97d2cfaebb50",
+    "author": "David",
+    "timestamp": "2026-07-11T11:44:05",
+    "text": "Success criteria changes based on whether an expert who might value productivity, doesn't need the basics vs a learner or child whos success criteria might be defined by their increase in curiosity and desire to learn after using tool",
+    "essayAnchor": null,
+    "parentId": "7c694fcb-a78c-4dfa-b1b0-8841b32a339f",
+    "quote": null
+  },
+  {
+    "id": "56341ca1-c796-4b60-9233-1f337f9745b0",
+    "author": "David",
+    "timestamp": "2026-07-11T11:44:55",
+    "text": "Authenticity is very important/ self-actualization",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "Norvig's intent was to explore a set of problems he himself was genuinely curious about. The educational aspect was a byproduct."
+  },
+  {
+    "id": "e9c01ed4-11fb-45f5-b6f3-8588f39275a8",
+    "author": "Moonwara",
+    "timestamp": "2026-07-11T11:45:21",
+    "text": "\"Make for interests not paycheck\"",
+    "essayAnchor": null,
+    "parentId": "56341ca1-c796-4b60-9233-1f337f9745b0",
+    "quote": null
+  },
+  {
+    "id": "24bffb50-75ff-482b-a3a3-400e93d1df68",
+    "author": "Moonwara",
+    "timestamp": "2026-07-11T11:46:32",
+    "text": "Not only for profit, but how it affects the people that use it and society",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "good intentions,"
+  },
+  {
+    "id": "a30d233b-c61f-4325-b2ed-7f2d27085795",
+    "author": "Moonwara",
+    "timestamp": "2026-07-11T11:46:57",
+    "text": "Why so important to start with goal",
+    "essayAnchor": null,
+    "parentId": "24bffb50-75ff-482b-a3a3-400e93d1df68",
+    "quote": null
+  },
+  {
+    "id": "b0718205-2880-4e22-ab9f-09267b7a1af1",
+    "author": "Moonwara",
+    "timestamp": "2026-07-11T11:48:27",
+    "text": "Why domain expertise is so important, need to have foundational knowledge to know what to include\n\nreferencing \"It'll be much like trying to be build new tools for carpeting without any experience in carpenting\"",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "How can they know what needs to be included?"
+  },
+  {
+    "id": "f210b5d6-9c1b-4bb5-807d-dbf8365d3b99",
+    "author": "David",
+    "timestamp": "2026-07-11T11:48:57",
+    "text": "You can't BS authentic lived experiences and curiosity derived from them",
+    "essayAnchor": null,
+    "parentId": "b0718205-2880-4e22-ab9f-09267b7a1af1",
+    "quote": null
+  },
+  {
+    "id": "7ed7163d-0449-4aab-898a-6f958aee67b6",
+    "author": "Moonwara",
+    "timestamp": "2026-07-11T11:49:33",
+    "text": "connected with previous page",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "Of course, not all parts of Mathematica work equally well"
+  },
+  {
+    "id": "8df325d5-0894-4b2f-b8ca-0028944a0633",
+    "author": "David",
+    "timestamp": "2026-07-11T11:50:35",
+    "text": "Need to be defined from beginning and not let fade over time due to desire or profits (i.e. facebook started with clear vision then slowly faded towards prioritizing profits at expense of user)",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "and it seems likely those are the ones not being used seriously internal to the company."
+  },
+  {
+    "id": "019a11ac-cdbe-4f5c-916c-a268a92e534c",
+    "author": "David",
+    "timestamp": "2026-07-11T11:51:14",
+    "text": "Deep conviction (can't be BSed) knows no bounds",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "They're not working on the problem for a paycheck; they're working on it because they desperately want to know the answer."
+  },
+  {
+    "id": "7dcc7a14-c411-4347-9fcb-ea76fbdecdeb",
+    "author": "Moonwara",
+    "timestamp": "2026-07-11T11:51:57",
+    "text": "Organizations pull towards profits, but individual can stay with their own personal interests and vision, benefiting society",
+    "essayAnchor": null,
+    "parentId": "019a11ac-cdbe-4f5c-916c-a268a92e534c",
+    "quote": null
+  },
+  {
+    "id": "b6d7a8af-1086-43fb-a903-eb8991aa324a",
+    "author": "Moonwara",
+    "timestamp": "2026-07-11T11:52:06",
+    "text": "Research lab can play an important role here",
+    "essayAnchor": null,
+    "parentId": "7dcc7a14-c411-4347-9fcb-ea76fbdecdeb",
+    "quote": null
   }
 ]
