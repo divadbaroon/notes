@@ -155,7 +155,7 @@ body {
   /* cover on mobile: tightened side margins for the narrow width. Discussion/date/title ride near
      the top (small top padding); the flex:1 spacer pushes the IN THIS ISSUE / feature / byline /
      foot block down near the bottom, with a small comfortable gap above the pagination bar. */
-  .book-cover { padding: 22px 26px 26px; }
+  .book-cover { padding: 22px 26px 42px; }
 
   /* thought stream becomes a right-side drawer */
   .session-stream { position: fixed; top: 0; right: 0; bottom: 0; width: min(90vw, 400px); flex: 0 0 auto; z-index: 60; transform: translateX(101%); transition: transform 260ms var(--ease-out); box-shadow: -14px 0 44px rgba(61,38,21,0.28); }
