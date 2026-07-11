@@ -133,6 +133,7 @@ body {
 
   .session-panes { max-width: 100%; gap: 0; }
   .session-book { flex: 1 1 auto; }
+  .book-runhead { display: none; } /* running header is desktop-only */
 
   /* thought stream becomes a right-side drawer */
   .session-stream { position: fixed; top: 0; right: 0; bottom: 0; width: min(90vw, 400px); flex: 0 0 auto; z-index: 60; transform: translateX(101%); transition: transform 260ms var(--ease-out); box-shadow: -14px 0 44px rgba(61,38,21,0.28); }

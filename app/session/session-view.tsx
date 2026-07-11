@@ -2,10 +2,10 @@
 
 // The interactive half of /session. It's handed the essay markdown (read from
 // content/tools-for-thought.md) and the seed thoughts (content/session-3-thoughts.json)
-// by the server page, and owns everything else client-side: the two-pane reading /
-// discussion layout, the localStorage-backed thought stream, and the add/export/clear
-// controls. No network, no backend — additions live in this browser only. Styling reuses
-// the same design tokens and renderNoteBody as the /local notes page.
+// by the server page, and owns everything else client-side: the page-turnable "book"
+// reader beside a page-scoped thought stream (a slide-in drawer on mobile), plus the
+// add/reply/export controls. No network, no backend — additions live in this browser only.
+// Styling reuses the same design tokens and renderNoteBody as the /local notes page.
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { renderNoteBody } from "@/lib/markdown/render";
