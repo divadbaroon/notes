@@ -212,6 +212,18 @@ export default function SessionView({
     setReady(true);
   }, []);
 
+  // Inject the ::highlight(thought-flash) rule at runtime. It styles the CSS Custom Highlight API
+  // used to flash a quoted passage; kept out of globals.css because the build's CSS optimizer
+  // (lightningcss) doesn't recognize the ::highlight() pseudo-element and warns on it.
+  useEffect(() => {
+    const id = "thought-flash-style";
+    if (document.getElementById(id)) return;
+    const style = document.createElement("style");
+    style.id = id;
+    style.textContent = "::highlight(thought-flash){background-color:rgba(184,137,63,0.32);color:inherit}";
+    document.head.appendChild(style);
+  }, []);
+
   useEffect(() => {
     if (ready) saveLocal(localThoughts);
   }, [localThoughts, ready]);
