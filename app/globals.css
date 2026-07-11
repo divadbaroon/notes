@@ -90,11 +90,16 @@ body {
 .book-cover-byline { margin-top: 16px; font: 14px/1 var(--font-sans); color: var(--text-muted); }
 .book-cover-foot { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; font: 11px/1 var(--font-sans); letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-tertiary); }
 
-.book-foot { flex-shrink: 0; height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 18px; border-top: 1px solid var(--card-border); }
+.book-foot { position: relative; flex-shrink: 0; height: 56px; display: flex; align-items: center; padding: 0 18px; border-top: 1px solid var(--card-border); }
+/* Prev / Next each own half the bar; the folio floats dead-center. Pull each button toward the
+   inner (center) edge of its half, with a small gap, so they sit close to the page numbers. */
+.book-nav-cell { flex: 1; display: flex; align-items: center; }
+.book-nav-cell:first-child { justify-content: flex-end; padding-right: 12%; }
+.book-nav-cell:last-child { justify-content: flex-start; padding-left: 12%; }
 .book-turn { appearance: none; background: none; border: 1px solid var(--card-border); color: var(--text-tertiary); border-radius: 999px; padding: 8px 14px; font: 12px/1 var(--font-sans); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: color 140ms var(--ease-out), border-color 140ms var(--ease-out), background 140ms var(--ease-out); }
 .book-turn:hover:not(:disabled) { color: var(--text); border-color: var(--text-tertiary); background: rgba(61,38,21,0.05); }
 .book-turn:disabled { opacity: 0.3; cursor: default; }
-.book-folio { flex: 1; text-align: center; font: 11px/1 var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.book-folio { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; font: 11px/1 var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
 /* prominent "Next page" control — the main way to move through the book */
 .book-next { appearance: none; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); border-radius: 999px; padding: 9px 18px; font: 600 12.5px/1 var(--font-sans); letter-spacing: 0.03em; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 2px 9px rgba(92,58,30,0.26); transition: background 140ms var(--ease-out), box-shadow 140ms var(--ease-out), transform 60ms var(--ease-out); }
 .book-next:hover:not(:disabled) { background: #4a2f18; box-shadow: 0 4px 15px rgba(92,58,30,0.34); }
@@ -122,6 +127,13 @@ body {
 .session-stream { flex-grow: 38; flex-basis: 0; min-width: 0; display: flex; flex-direction: column; border-left: 1px solid var(--card-border); background: var(--bg); overflow: hidden; }
 .session-backdrop { display: none; }
 
+/* mobile first-load nudge toward the top-right thoughts menu (rendered only on phones) */
+.thoughts-hint { position: fixed; top: 56px; right: 12px; z-index: 70; max-width: 220px; text-align: left; padding: 9px 13px; background: var(--accent); color: var(--bg); border: none; border-radius: 11px; font: 500 12.5px/1.35 var(--font-sans); box-shadow: 0 10px 26px rgba(61,38,21,0.30); cursor: pointer; animation: thoughts-hint-in 260ms var(--ease-out) both; }
+.thoughts-hint::before { content: ""; position: absolute; top: -5px; right: 20px; width: 11px; height: 11px; background: var(--accent); border-radius: 2px; transform: rotate(45deg); }
+@keyframes thoughts-hint-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .thoughts-hint { animation: none; } }
+@media (min-width: 769px) { .thoughts-hint { display: none; } }
+
 @media (max-width: 768px) {
   .session-header { padding: 12px 16px; }
   .session-title { font-size: 14px; }
@@ -134,7 +146,18 @@ body {
 
   .session-panes { max-width: 100%; gap: 0; }
   .session-book { flex: 1 1 auto; }
-  .book-runhead { display: none; } /* running header is desktop-only */
+  /* keep the running header on mobile, but give it room so it doesn't squish: drop the static
+     essay title, show only the section, left-aligned and truncating, with tighter padding */
+  .book-runhead { padding: 8px 16px 0; letter-spacing: 0.12em; }
+  .book-runhead > span:first-child { display: none; }
+  .book-runhead .book-sec { max-width: 100%; text-align: left; }
+
+  /* cover: on a tall phone the desktop top/bottom split leaves a big empty middle — center the
+     whole composition as one balanced title card, with a modest gap instead of a huge void */
+  .book-cover { justify-content: center; padding: 20px 26px 26px; }
+  .book-cover-title { margin-top: 18px; }
+  .book-cover-spacer { flex: 0 0 auto; height: 30px; }
+  .book-cover-foot { margin-top: 22px; }
 
   /* thought stream becomes a right-side drawer */
   .session-stream { position: fixed; top: 0; right: 0; bottom: 0; width: min(90vw, 400px); flex: 0 0 auto; z-index: 60; transform: translateX(101%); transition: transform 260ms var(--ease-out); box-shadow: -14px 0 44px rgba(61,38,21,0.28); }

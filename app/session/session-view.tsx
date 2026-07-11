@@ -136,6 +136,36 @@ function truncate(s: string, n: number): string {
   return s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s;
 }
 
+// True on the phone layout (matches the CSS drawer breakpoint), used to add the mobile-only
+// "flash the passage, then open the drawer to its card" flow without touching desktop.
+function isMobileViewport(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches;
+}
+
+// Mobile: how long after a tap the drawer auto-opens, and how long the essay flash stays lit —
+// the flash persists until (just past) the reveal so the text never goes dark in between.
+const REVEAL_DELAY_MS = 1800;
+const MOBILE_FLASH_MS = REVEAL_DELAY_MS + 300;
+const DEFAULT_FLASH_MS = 1300;
+
+// The text position under a click/tap, normalized across the two browser APIs. Used to tell
+// which underlined quote passage (if any) the reader tapped.
+function caretPosFromPoint(x: number, y: number): { node: Node; offset: number } | null {
+  const d = document as Document & {
+    caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
+    caretRangeFromPoint?: (x: number, y: number) => Range | null;
+  };
+  if (d.caretPositionFromPoint) {
+    const p = d.caretPositionFromPoint(x, y);
+    return p ? { node: p.offsetNode, offset: p.offset } : null;
+  }
+  if (d.caretRangeFromPoint) {
+    const r = d.caretRangeFromPoint(x, y);
+    return r ? { node: r.startContainer, offset: r.startOffset } : null;
+  }
+  return null;
+}
+
 export default function SessionView({
   essay,
   fileThoughts,
@@ -156,6 +186,7 @@ export default function SessionView({
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false); // mobile: thought-stream drawer open
+  const [showHint, setShowHint] = useState(false); // mobile: first-load "tap here for thoughts" nudge
 
   const streamRef = useRef<HTMLDivElement>(null);
   const composerRef = useRef<HTMLDivElement>(null);
@@ -163,6 +194,8 @@ export default function SessionView({
   const textRef = useRef<HTMLTextAreaElement>(null);
   const pendingQuoteRef = useRef(""); // essay selection captured when "+ Add thought" is pressed
   const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Live ranges of each thought's quoted passage in the essay, for underlining + tap-to-open.
+  const quotePassagesRef = useRef<{ range: Range; thought: Thought }[]>([]);
 
   // --- paginated book view of the essay ---
   const PAGE_PAD = 22; // px of breathing room at the top & bottom of every page
@@ -220,13 +253,34 @@ export default function SessionView({
     if (document.getElementById(id)) return;
     const style = document.createElement("style");
     style.id = id;
-    style.textContent = "::highlight(thought-flash){background-color:rgba(184,137,63,0.32);color:inherit}";
+    // thought-flash: the brief highlight when jumping to a passage.
+    // thought-passages: the persistent dotted underline marking every discussed (quoted) passage.
+    style.textContent =
+      "::highlight(thought-flash){background-color:rgba(184,137,63,0.32);color:inherit}" +
+      "::highlight(thought-passages){text-decoration:underline;text-decoration-style:dotted;text-decoration-color:var(--clay);text-decoration-thickness:2px}";
     document.head.appendChild(style);
   }, []);
 
   useEffect(() => {
     if (ready) saveLocal(localThoughts);
   }, [localThoughts, ready]);
+
+  // Mobile first-load nudge: on phones the thoughts live behind the top-right menu, so point the
+  // reader at it. Stops appearing once they've opened the drawer (learned it); auto-fades otherwise.
+  useEffect(() => {
+    if (!isMobileViewport()) return;
+    try { if (window.localStorage.getItem("papert-thoughts-hint")) return; } catch { /* ignore */ }
+    setShowHint(true);
+    const t = window.setTimeout(() => setShowHint(false), 6500);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  // Opening the drawer means they found the thoughts — dismiss the nudge and don't show it again.
+  useEffect(() => {
+    if (!menuOpen) return;
+    setShowHint(false);
+    try { window.localStorage.setItem("papert-thoughts-hint", "1"); } catch { /* ignore */ }
+  }, [menuOpen]);
 
   // JSON file first, localStorage additions after, all sorted by timestamp.
   const thoughts = useMemo(() => {
@@ -267,6 +321,29 @@ export default function SessionView({
   // A passage anchor targets a <u id="anchor-…"> element directly; anything else is a section
   // heading, which keeps resolving through the slugified `sec-…` id as before.
   const isPassageAnchor = (a: string) => a.startsWith("anchor-");
+
+  // Underline every passage a thought quotes (via the CSS Custom Highlight API — no DOM mutation,
+  // so the memoized essay stays intact) and remember each range → thought so a tap can open it.
+  useEffect(() => {
+    const art = articleRef.current;
+    if (!art) return;
+    const w = window as unknown as { Highlight?: new (...ranges: Range[]) => object };
+    const highlights = (CSS as unknown as { highlights?: Map<string, object> }).highlights;
+    const entries: { range: Range; thought: Thought }[] = [];
+    const seen = new Set<string>();
+    for (const t of thoughts) {
+      if (!t.quote || seen.has(t.quote)) continue;
+      seen.add(t.quote);
+      const r = rangeOfText(art, t.quote);
+      if (r) entries.push({ range: r, thought: t });
+    }
+    quotePassagesRef.current = entries;
+    if (w.Highlight && highlights) {
+      if (entries.length) highlights.set("thought-passages", new w.Highlight(...entries.map((e) => e.range)));
+      else highlights.delete("thought-passages");
+    }
+    return () => { highlights?.delete("thought-passages"); };
+  }, [thoughts, essayHtml]);
 
   // How deep in a reply thread a thought sits — walk parentId up to the root. Cycle-guarded and
   // capped so a malformed chain can't loop or indent off the edge. Drives the card's left indent.
@@ -378,14 +455,14 @@ export default function SessionView({
   // Briefly highlight an arbitrary passage range using the CSS Custom Highlight API (no DOM
   // mutation). Silently degrades where unsupported — the page turn alone still lands the reader
   // on the passage.
-  const flashRange = useCallback((range: Range) => {
+  const flashRange = useCallback((range: Range, duration = DEFAULT_FLASH_MS) => {
     interface HL { }
     const w = window as unknown as { Highlight?: new (r: Range) => HL };
     const highlights = (CSS as unknown as { highlights?: Map<string, HL> }).highlights;
     if (!w.Highlight || !highlights) return;
     try {
       highlights.set("thought-flash", new w.Highlight(range));
-      window.setTimeout(() => highlights.delete("thought-flash"), 1300);
+      window.setTimeout(() => highlights.delete("thought-flash"), duration);
     } catch {
       /* unsupported range — ignore */
     }
@@ -564,7 +641,7 @@ export default function SessionView({
 
   // Flash every passage a thought on `lf` cites — so skipping to a page lights up its text.
   const flashLeafTargets = useCallback(
-    (lf: number) => {
+    (lf: number, duration = DEFAULT_FLASH_MS) => {
       const art = articleRef.current;
       if (!art) return;
       const done = new Set<string>();
@@ -579,24 +656,46 @@ export default function SessionView({
           const el = art.querySelector<HTMLElement>(selOfAnchor(target.value));
           if (!el) continue;
           el.classList.add("anchor-flash");
-          window.setTimeout(() => el.classList.remove("anchor-flash"), 1300);
+          window.setTimeout(() => el.classList.remove("anchor-flash"), duration);
         } else {
           const range = rangeOfText(art, target.value);
-          if (range) flashRange(range);
+          if (range) flashRange(range, duration);
         }
       }
     },
     [thoughts, thoughtLeaf, targetOfThread, selOfAnchor, flashRange]
   );
 
+  // Mobile only: after the essay flash, slide the thoughts drawer open and scroll it to the given
+  // card (with the standard highlight). A no-op on desktop, where the stream is always visible.
+  function revealCardOnMobile(thoughtId: string, delay = REVEAL_DELAY_MS) {
+    if (!isMobileViewport()) return;
+    window.setTimeout(() => {
+      setMenuOpen(true);
+      setHighlightId(thoughtId);
+      if (highlightTimer.current) clearTimeout(highlightTimer.current);
+      highlightTimer.current = setTimeout(() => setHighlightId(null), 1800);
+      // let the drawer mount, then bring the card into view
+      window.setTimeout(() => {
+        const el = streamRef.current?.querySelector<HTMLElement>(`[data-thought="${CSS.escape(thoughtId)}"]`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 80);
+    }, delay);
+  }
+
   // Turn to the next page (wrapping around) that has any thoughts, and flash its cited text.
   const goToNextThought = () => {
     if (!thoughtLeaves.length) return;
     const after = thoughtLeaves.find((l) => l > leaf);
     const target = after !== undefined ? after : thoughtLeaves[0];
+    const mobile = isMobileViewport();
     setMenuOpen(false); // on mobile, reveal the book so the flash is visible
     gotoLeaf(target, false);
-    window.setTimeout(() => flashLeafTargets(target), 90);
+    // on mobile keep the flash lit until the drawer auto-opens
+    window.setTimeout(() => flashLeafTargets(target, mobile ? MOBILE_FLASH_MS : DEFAULT_FLASH_MS), 90);
+    // mobile: after the flash, open the drawer to the page's first thought
+    const first = thoughts.find((t) => thoughtLeaf.get(t.id) === target);
+    if (first) revealCardOnMobile(first.id);
   };
 
   // Turn to a quoted passage's page and flash it (the card's quote block is clickable).
@@ -637,10 +736,37 @@ export default function SessionView({
   const onEssayClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
     // Don't treat the tail of a text-selection drag as a passage click.
     if (!window.getSelection()?.isCollapsed) return;
+    const mobile = isMobileViewport();
+    const dur = DEFAULT_FLASH_MS;
+    // Tapping a passage directly: open the thought immediately — on mobile the drawer appears at
+    // once (no delay) scrolled to its card; on desktop scroll the always-visible stream to it.
+    const open = (thoughtId: string) => { if (mobile) revealCardOnMobile(thoughtId, 0); else scrollToThought(thoughtId); };
+
+    // 1) a pre-defined <u> anchor passage
     const u = (e.target as HTMLElement).closest<HTMLElement>('u[id^="anchor-"]');
-    if (!u) return;
-    const t = thoughts.find((x) => x.essayAnchor === u.id);
-    if (t) scrollToThought(t.id);
+    if (u) {
+      const t = thoughts.find((x) => x.essayAnchor === u.id);
+      if (!t) return;
+      u.classList.add("anchor-flash");
+      window.setTimeout(() => u.classList.remove("anchor-flash"), dur);
+      open(t.id);
+      return;
+    }
+
+    // 2) a discussed (quoted) passage — dotted-underlined via the highlight API. Figure out which
+    // one was tapped from the caret position, flash it, and open its thought.
+    const art = articleRef.current;
+    const pos = caretPosFromPoint(e.clientX, e.clientY);
+    if (!art || !pos) return;
+    for (const { range, thought } of quotePassagesRef.current) {
+      let hit = false;
+      try { hit = range.isPointInRange(pos.node, pos.offset); } catch { hit = false; }
+      if (hit) {
+        flashRange(range, dur);
+        open(thought.id);
+        break;
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thoughts]);
 
@@ -694,6 +820,7 @@ export default function SessionView({
     setQuote("");
     setReplyTo(null);
     setFormOpen(false);
+    pendingQuoteRef.current = ""; // consumed — don't carry this highlight to the next thought
   }
 
   async function exportJson() {
@@ -744,12 +871,15 @@ export default function SessionView({
   };
 
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <header className="session-header">
         <span className="session-title">Discussion III · July 11, 2026 · Mill Mountain</span>
         <span className="session-eyebrow">reading &amp; thoughts</span>
         <button
           className="session-hamburger"
+          // capture any essay highlight before opening the drawer clears the selection, so a
+          // later "+ Add thought" still knows which line was highlighted
+          onPointerDown={() => { pendingQuoteRef.current = readEssaySelection(); }}
           onClick={() => setMenuOpen(true)}
           aria-label="Open thoughts"
           aria-expanded={menuOpen}
@@ -758,13 +888,20 @@ export default function SessionView({
         </button>
       </header>
 
+      {/* mobile-only first-load nudge pointing at the top-right menu */}
+      {showHint && (
+        <button className="thoughts-hint" onClick={() => setMenuOpen(true)}>
+          To see our thoughts, tap here
+        </button>
+      )}
+
       <div className="session-panes">
         {/* Left: the essay, as a page-turnable book (full screen on mobile) */}
         <main className="session-book">
           <div className="book-leaf">
             <div className="book-runhead">
               <span>{leaf === 0 ? "" : "Augmenting Human Cognition"}</span>
-              <span className="book-sec">{leaf === 0 ? "" : sections[leaf - 1] || ""}</span>
+              <span className="book-sec">{leaf === 0 ? "" : sections[leaf - 1] || "Introduction"}</span>
             </div>
 
             <div className="book-fade" ref={fadeRef}>
@@ -798,13 +935,17 @@ export default function SessionView({
             </div>
 
             <div className="book-foot">
-              <button className="book-turn" disabled={leaf === 0} onClick={() => gotoLeaf(leaf - 1)} aria-label="Previous page">
-                <span className="arw">‹</span> Prev
-              </button>
+              <div className="book-nav-cell">
+                <button className="book-turn" disabled={leaf === 0} onClick={() => gotoLeaf(leaf - 1)} aria-label="Previous page">
+                  <span className="arw">‹</span> Prev
+                </button>
+              </div>
               <span className="book-folio">{leaf === 0 ? "Cover" : `${leaf} / ${Math.max(1, leafCount - 1)}`}</span>
-              <button className="book-turn" disabled={leaf >= leafCount - 1} onClick={() => gotoLeaf(leaf + 1)} aria-label="Next page">
-                Next <span className="arw">›</span>
-              </button>
+              <div className="book-nav-cell">
+                <button className="book-turn" disabled={leaf >= leafCount - 1} onClick={() => gotoLeaf(leaf + 1)} aria-label="Next page">
+                  Next <span className="arw">›</span>
+                </button>
+              </div>
             </div>
           </div>
         </main>
@@ -826,8 +967,10 @@ export default function SessionView({
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <button
-                  // capture the essay highlight on mousedown, before the click clears the selection
-                  onMouseDown={() => { pendingQuoteRef.current = readEssaySelection(); }}
+                  // Desktop: capture the live essay highlight (selection survives the button click).
+                  // Mobile: the selection was already cleared by opening the drawer, so keep what the
+                  // hamburger captured rather than clobbering it with an empty selection.
+                  onMouseDown={() => { const live = readEssaySelection(); if (live || !isMobileViewport()) pendingQuoteRef.current = live; }}
                   onClick={openComposer}
                   className={`add-thought-btn${formOpen ? " open" : ""}`}
                   title="Add a thought (highlight a passage first to attach it)"
@@ -1064,7 +1207,7 @@ export default function SessionView({
                       }}
                       title={`Reply to ${t.author}`}
                     >
-                      ↩ Reply
+                      Reply
                     </button>
                   </div>
                 </div>
