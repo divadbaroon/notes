@@ -63,6 +63,8 @@ export default function GraphView({
   const mountRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<ForceGraphInstance | null>(null);
   const [selected, setSelected] = useState<GraphNode | null>(null);
+  const [legendOpen, setLegendOpen] = useState(false); // right-side "centers of gravity" dropdown
+  const [cardHover, setCardHover] = useState(false); // reveal the detail card's concept tags on hover
   // True while an external focus (playback) owns the camera, so a resize won't fight it.
   const focusActiveRef = useRef(false);
   useEffect(() => { focusActiveRef.current = !!focusNodeId; }, [focusNodeId]);
@@ -230,39 +232,76 @@ export default function GraphView({
         </div>
       )}
 
-      {/* Legend — concepts by mass. Tucks to the top-left in the panel (no title there). */}
+      {/* Legend — concepts by mass. A collapsible dropdown pinned to the right, closed by default. */}
       <div
         style={{
           position: "absolute",
           top: embedded ? 12 : 20,
-          ...(embedded ? { left: 12 } : { right: 24 }),
+          right: embedded ? 12 : 24,
           zIndex: 5,
-          background: "rgba(20,16,12,0.72)",
+          width: 216,
+          maxWidth: "calc(100% - 24px)",
+          background: "rgba(20,16,12,0.78)",
           border: "1px solid rgba(255,255,255,0.1)",
           borderRadius: 10,
-          padding: "12px 14px",
           backdropFilter: "blur(6px)",
-          maxWidth: embedded ? 190 : 230,
+          overflow: "hidden",
         }}
       >
-        <div style={{ font: "600 10px/1 sans-serif", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(240,230,215,0.5)", marginBottom: 9 }}>
-          Centers of gravity
-        </div>
-        {legend.map((c) => (
-          <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <span style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0, boxShadow: `0 0 8px ${c.color}` }} />
-            <span style={{ font: "12px/1.3 sans-serif", color: "rgba(240,230,215,0.85)", flex: 1 }}>{c.label}</span>
-            <span style={{ font: "11px/1 sans-serif", color: "rgba(240,230,215,0.45)" }}>{c.mass}</span>
+        {/* Header — always visible; toggles the list open/closed */}
+        <button
+          onClick={() => setLegendOpen((o) => !o)}
+          aria-expanded={legendOpen}
+          title={legendOpen ? "Hide centers of gravity" : "Show centers of gravity"}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+            padding: "10px 12px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <span style={{ font: "600 10px/1 sans-serif", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(240,230,215,0.62)" }}>
+            Centers of gravity
+          </span>
+          {/* chevron rotates when open */}
+          <span
+            style={{
+              font: "10px/1 sans-serif",
+              color: "rgba(240,230,215,0.5)",
+              transform: legendOpen ? "rotate(180deg)" : "none",
+              transition: "transform 180ms ease",
+            }}
+          >
+            ▾
+          </span>
+        </button>
+
+        {legendOpen && (
+          <div style={{ padding: "2px 12px 12px" }}>
+            {legend.map((c) => (
+              <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0, boxShadow: `0 0 8px ${c.color}` }} />
+                <span style={{ font: "12px/1.3 sans-serif", color: "rgba(240,230,215,0.85)", flex: 1 }}>{c.label}</span>
+                <span style={{ font: "11px/1 sans-serif", color: "rgba(240,230,215,0.45)" }}>{c.mass}</span>
+              </div>
+            ))}
+            <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.08)", font: "10.5px/1.4 sans-serif", color: "rgba(240,230,215,0.4)" }}>
+              Number = thoughts orbiting it
+            </div>
           </div>
-        ))}
-        <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.08)", font: "10.5px/1.4 sans-serif", color: "rgba(240,230,215,0.4)" }}>
-          Number = thoughts orbiting it
-        </div>
+        )}
       </div>
 
       {/* Selected-node detail */}
       {selected && (
         <div
+          onMouseEnter={() => setCardHover(true)}
+          onMouseLeave={() => setCardHover(false)}
           style={{
             position: "absolute",
             bottom: 24,
@@ -297,17 +336,28 @@ export default function GraphView({
                 </div>
               )}
               <div style={{ marginTop: 9, font: "14px/1.55 Georgia, serif", color: "rgba(240,230,215,0.9)" }}>{selected.text}</div>
+              {/* Concept tags: hidden by default, revealed (with a fade) when the card is hovered. */}
               {selected.concepts && selected.concepts.length > 0 && (
-                <div style={{ marginTop: 11, display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {selected.concepts.map((cid) => {
-                    const c = legend.find((l) => l.id === cid);
-                    if (!c) return null;
-                    return (
-                      <span key={cid} style={{ font: "11px/1 sans-serif", color: c.color, border: `1px solid ${c.color}`, borderRadius: 999, padding: "3px 9px", opacity: 0.85 }}>
-                        {c.label}
-                      </span>
-                    );
-                  })}
+                <div
+                  style={{
+                    overflow: "hidden",
+                    maxHeight: cardHover ? 160 : 0,
+                    marginTop: cardHover ? 11 : 0,
+                    opacity: cardHover ? 1 : 0,
+                    transition: "max-height 220ms ease, opacity 200ms ease, margin-top 220ms ease",
+                  }}
+                >
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {selected.concepts.map((cid) => {
+                      const c = legend.find((l) => l.id === cid);
+                      if (!c) return null;
+                      return (
+                        <span key={cid} style={{ font: "11px/1 sans-serif", color: c.color, border: `1px solid ${c.color}`, borderRadius: 999, padding: "3px 9px", opacity: 0.85 }}>
+                          {c.label}
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </>
