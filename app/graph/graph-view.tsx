@@ -213,7 +213,7 @@ export default function GraphView({
           parts.push(sprite);
         }
         if (n.id === selectedIdRef.current) {
-          parts.push(makeGlowSprite(THREE, n.color, Math.cbrt(n.val) * 6 + 9));
+          parts.push(makeGlowSprite(THREE, n.color, Math.cbrt(n.val) * 7 + 13));
         }
         if (parts.length === 0) return null;
         if (parts.length === 1) return parts[0];
@@ -228,7 +228,8 @@ export default function GraphView({
         .width(el.clientWidth)
         .height(el.clientHeight)
         .nodeVal((n) => n.val)
-        .nodeColor((n) => n.color)
+        // The selected node also brightens toward white, on top of its glow.
+        .nodeColor((n) => (n.id === selectedIdRef.current ? lighten(n.color, 0.4) : n.color))
         .nodeResolution(16)
         .nodeOpacity(0.92)
         // Concept hubs get a floating text caption; the selected node also gets a soft glow halo.
@@ -251,7 +252,9 @@ export default function GraphView({
       // Re-evaluate the node three-objects so the newly-selected node glows (and the previous one
       // stops). A fresh wrapper closure each call so kapsule always repaints.
       refreshHighlightRef.current = () => {
-        graphRef.current?.nodeThreeObject((n) => nodeThreeAccessor(n));
+        graphRef.current
+          ?.nodeThreeObject((n) => nodeThreeAccessor(n))
+          .nodeColor((n) => (n.id === selectedIdRef.current ? lighten(n.color, 0.4) : n.color));
       };
 
       // Paint the current theme (background/links/tooltips). Live theme switches are handled by a
@@ -644,6 +647,13 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(int >> 16) & 255, (int >> 8) & 255, int & 255];
 }
 
+// Mix a hex colour toward white by `amount` (0–1) — brightens the selected node so it stands out.
+function lighten(hex: string, amount: number): string {
+  const [r, g, b] = hexToRgb(hex);
+  const m = (c: number) => Math.round(c + (255 - c) * amount);
+  return `rgb(${m(r)},${m(g)},${m(b)})`;
+}
+
 // A soft radial-gradient sprite in the node's colour, additively blended — a *slight* glow so the
 // selected node reads as gently lit. `size` is its world-space diameter.
 function makeGlowSprite(THREE: typeof import("three"), color: string, size: number): import("three").Sprite {
@@ -653,11 +663,11 @@ function makeGlowSprite(THREE: typeof import("three"), color: string, size: numb
   canvas.width = canvas.height = d;
   const ctx = canvas.getContext("2d")!;
   const grad = ctx.createRadialGradient(d / 2, d / 2, 0, d / 2, d / 2, d / 2);
-  // Gentle and tight: a soft core that fades to transparent well before the sprite edge, so the
-  // glow hugs the node rather than spreading far out.
-  grad.addColorStop(0, `rgba(${r},${g},${b},0.6)`);
-  grad.addColorStop(0.3, `rgba(${r},${g},${b},0.22)`);
-  grad.addColorStop(0.62, `rgba(${r},${g},${b},0)`);
+  // Bright but tight: a strong core that still fades to transparent before the sprite edge, so the
+  // glow reads clearly yet hugs the node rather than spreading far out.
+  grad.addColorStop(0, `rgba(${r},${g},${b},0.95)`);
+  grad.addColorStop(0.32, `rgba(${r},${g},${b},0.4)`);
+  grad.addColorStop(0.68, `rgba(${r},${g},${b},0)`);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, d, d);
   const texture = new THREE.CanvasTexture(canvas);
