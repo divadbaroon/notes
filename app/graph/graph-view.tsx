@@ -51,6 +51,67 @@ type GraphLinkObj = {
   target: GraphNode | string;
 };
 
+// The three switchable looks. Node colors stay the site's accents (clay/brass/turtle…) in every
+// theme; what changes is the background, links, text, and chrome — so the map can read as a cold
+// "night sky", a warm "espresso" companion to the book, or a light "constellation on paper".
+type ThemeKey = "dark" | "warm" | "light";
+type Theme = {
+  label: string;
+  bg: string;
+  link: string; // orbit link
+  reply: string; // reply-thread link
+  text: string; // primary label / body text
+  textDim: string;
+  textFaint: string;
+  chromeBg: string; // legend / card / switcher panels
+  chromeBorder: string;
+  tooltipBg: string;
+  tooltipText: string;
+};
+const THEMES: Record<ThemeKey, Theme> = {
+  dark: {
+    label: "Dark",
+    bg: "#0f0d0b",
+    link: "rgba(200,180,150,0.28)",
+    reply: "#7a9b7a",
+    text: "rgba(240,230,215,0.85)",
+    textDim: "rgba(240,230,215,0.6)",
+    textFaint: "rgba(240,230,215,0.4)",
+    chromeBg: "rgba(20,16,12,0.78)",
+    chromeBorder: "rgba(255,255,255,0.1)",
+    tooltipBg: "rgba(20,16,12,0.92)",
+    tooltipText: "#f3ece2",
+  },
+  warm: {
+    label: "Warm",
+    bg: "#221a15",
+    link: "rgba(214,205,188,0.3)",
+    reply: "#7a9b7a",
+    text: "rgba(245,240,230,0.88)",
+    textDim: "rgba(245,240,230,0.62)",
+    textFaint: "rgba(245,240,230,0.42)",
+    chromeBg: "rgba(34,26,21,0.82)",
+    chromeBorder: "rgba(230,220,205,0.16)",
+    tooltipBg: "rgba(34,26,21,0.94)",
+    tooltipText: "#f5f0e6",
+  },
+  light: {
+    label: "Light",
+    bg: "#f1ead9",
+    link: "rgba(92,58,30,0.24)",
+    reply: "#4e6b54",
+    text: "#3D3530",
+    textDim: "#6B6358",
+    textFaint: "#9B9488",
+    chromeBg: "rgba(250,248,243,0.88)",
+    chromeBorder: "rgba(61,38,21,0.16)",
+    tooltipBg: "rgba(250,248,243,0.95)",
+    tooltipText: "#3D3530",
+  },
+};
+const THEME_ORDER: ThemeKey[] = ["dark", "warm", "light"];
+const THEME_STORAGE_KEY = "papert-graph-theme";
+
 export default function GraphView({
   thoughts,
   embedded = false,
@@ -66,9 +127,26 @@ export default function GraphView({
   const [selected, setSelected] = useState<GraphNode | null>(null);
   const [legendOpen, setLegendOpen] = useState(false); // right-side "centers of gravity" dropdown
   const [cardHover, setCardHover] = useState(false); // reveal the detail card's concept tags on hover
+  const [themeKey, setThemeKey] = useState<ThemeKey>("warm"); // dark | warm | light — see THEMES
+  const theme = THEMES[themeKey];
   // True while an external focus (playback) owns the camera, so a resize won't fight it.
   const focusActiveRef = useRef(false);
   useEffect(() => { focusActiveRef.current = !!focusNodeId; }, [focusNodeId]);
+  // Keep the latest theme readable inside the (once-created) graph effect without recreating it.
+  const themeRef = useRef(theme);
+  useEffect(() => { themeRef.current = theme; }, [theme]);
+
+  // Restore the saved theme choice (client-only, after mount to avoid any hydration mismatch).
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem(THEME_STORAGE_KEY);
+      if (s === "dark" || s === "warm" || s === "light") setThemeKey(s);
+    } catch { /* ignore */ }
+  }, []);
+  const chooseTheme = (k: ThemeKey) => {
+    setThemeKey(k);
+    try { localStorage.setItem(THEME_STORAGE_KEY, k); } catch { /* ignore */ }
+  };
 
   const data = useMemo(() => buildThoughtGraph(thoughts), [thoughts]);
 
@@ -101,20 +179,13 @@ export default function GraphView({
       const ForceGraph3D = mod.default as unknown as () => ForceGraphInstance;
 
       const Graph = ForceGraph3D()(el)
-        .backgroundColor("#0f0d0b")
         .showNavInfo(false) // hide the library's built-in controls line; we show our own hint
-
         .width(el.clientWidth)
         .height(el.clientHeight)
         .nodeVal((n) => n.val)
         .nodeColor((n) => n.color)
         .nodeResolution(16)
         .nodeOpacity(0.92)
-        .nodeLabel((n) =>
-          n.kind === "concept"
-            ? `<div style="font:600 13px sans-serif;color:${n.color};padding:2px 4px">${n.label}</div>`
-            : `<div style="max-width:240px;font:12px/1.45 sans-serif;color:#f3ece2;background:rgba(20,16,12,0.92);padding:7px 9px;border-radius:6px;border:1px solid rgba(255,255,255,0.12)"><b style="color:${n.color}">${n.author}</b><br/>${escapeHtml(n.label)}</div>`
-        )
         // Concept hubs also get a floating text sprite so the centers of gravity are labeled in 3D.
         .nodeThreeObjectExtend(true)
         .nodeThreeObject((n) => {
@@ -124,7 +195,6 @@ export default function GraphView({
           sprite.position.set(0, Math.cbrt(n.val) * 4 + 6, 0);
           return sprite;
         })
-        .linkColor((l) => (l.kind === "reply" ? "#7a9b7a" : "rgba(200,180,150,0.28)"))
         .linkWidth((l) => (l.kind === "reply" ? 0.8 : 0.4))
         .linkOpacity(0.5)
         .linkDirectionalParticles((l) => (l.kind === "reply" ? 2 : 0))
@@ -138,6 +208,10 @@ export default function GraphView({
         // A final fit once the simulation fully cools (safety net; may be many seconds out).
         .onEngineStop(() => { if (!focusActiveRef.current) Graph.zoomToFit(600, fitPadding()); })
         .graphData(data);
+
+      // Paint the current theme (background/links/tooltips). Live theme switches are handled by a
+      // separate effect below; here we set the initial look from the latest chosen theme.
+      applyTheme(Graph, themeRef.current);
 
       // Physics: give the heavy concept hubs a strong pull and let thoughts settle into orbits.
       // Orbit links sit farther out than reply links so replies visibly bunch beside their parent.
@@ -207,6 +281,11 @@ export default function GraphView({
     return () => clearTimeout(timer);
   }, [focusNodeId, data]);
 
+  // Live theme switch: repaint the already-created graph's background/links/tooltips.
+  useEffect(() => {
+    if (graphRef.current) applyTheme(graphRef.current, theme);
+  }, [theme]);
+
   return (
     <div
       style={{
@@ -214,7 +293,8 @@ export default function GraphView({
         height: embedded ? "100%" : "100dvh",
         width: "100%",
         overflow: "hidden",
-        background: "#0f0d0b",
+        background: theme.bg,
+        transition: "background 300ms ease",
         // Embedded in the /session panel it reads as an inset card, framed like the reading pane.
         borderRadius: embedded ? 12 : 0,
         border: embedded ? "1px solid var(--card-border)" : undefined,
@@ -222,13 +302,54 @@ export default function GraphView({
     >
       <div ref={mountRef} style={{ position: "absolute", inset: 0 }} />
 
+      {/* Theme switcher — dark / warm / light, pinned top-left. */}
+      <div
+        style={{
+          position: "absolute",
+          top: embedded ? 12 : 20,
+          left: embedded ? 12 : 24,
+          zIndex: 6,
+          display: "flex",
+          gap: 2,
+          padding: 3,
+          background: theme.chromeBg,
+          border: `1px solid ${theme.chromeBorder}`,
+          borderRadius: 8,
+          backdropFilter: "blur(6px)",
+        }}
+      >
+        {THEME_ORDER.map((k) => {
+          const active = k === themeKey;
+          return (
+            <button
+              key={k}
+              onClick={() => chooseTheme(k)}
+              title={`${THEMES[k].label} theme`}
+              aria-pressed={active}
+              style={{
+                font: "600 10.5px/1 sans-serif",
+                letterSpacing: "0.04em",
+                color: active ? theme.text : theme.textFaint,
+                background: active ? "rgba(140,130,115,0.22)" : "none",
+                border: "none",
+                borderRadius: 6,
+                padding: "5px 9px",
+                cursor: "pointer",
+              }}
+            >
+              {THEMES[k].label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Title + framing — dropped when embedded (the panel header already gives context) */}
       {!embedded && (
-        <div style={{ position: "absolute", top: 20, left: 24, zIndex: 5, pointerEvents: "none", maxWidth: 360 }}>
-          <div style={{ font: "600 11px/1 sans-serif", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(240,230,215,0.55)" }}>
+        <div style={{ position: "absolute", top: 64, left: 24, zIndex: 5, pointerEvents: "none", maxWidth: 360 }}>
+          <div style={{ font: "600 11px/1 sans-serif", letterSpacing: "0.14em", textTransform: "uppercase", color: theme.textDim }}>
             Discussion III · Centers of Gravity
           </div>
-          <div style={{ marginTop: 8, font: "13px/1.5 Georgia, serif", color: "rgba(240,230,215,0.72)" }}>
+          <div style={{ marginTop: 8, font: "13px/1.5 Georgia, serif", color: theme.textDim }}>
             Each concept is a mass; the more it was discussed, the heavier it pulls. Every thought
             orbits the concept(s) it touches.
           </div>
@@ -244,8 +365,8 @@ export default function GraphView({
           zIndex: 5,
           width: 216,
           maxWidth: "calc(100% - 24px)",
-          background: "rgba(20,16,12,0.78)",
-          border: "1px solid rgba(255,255,255,0.1)",
+          background: theme.chromeBg,
+          border: `1px solid ${theme.chromeBorder}`,
           borderRadius: 10,
           backdropFilter: "blur(6px)",
           overflow: "hidden",
@@ -268,14 +389,14 @@ export default function GraphView({
             cursor: "pointer",
           }}
         >
-          <span style={{ font: "600 10px/1 sans-serif", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(240,230,215,0.62)" }}>
+          <span style={{ font: "600 10px/1 sans-serif", letterSpacing: "0.12em", textTransform: "uppercase", color: theme.textDim }}>
             Centers of gravity
           </span>
           {/* chevron rotates when open */}
           <span
             style={{
               font: "10px/1 sans-serif",
-              color: "rgba(240,230,215,0.5)",
+              color: theme.textFaint,
               transform: legendOpen ? "rotate(180deg)" : "none",
               transition: "transform 180ms ease",
             }}
@@ -289,11 +410,11 @@ export default function GraphView({
             {legend.map((c) => (
               <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0, boxShadow: `0 0 8px ${c.color}` }} />
-                <span style={{ font: "12px/1.3 sans-serif", color: "rgba(240,230,215,0.85)", flex: 1 }}>{c.label}</span>
-                <span style={{ font: "11px/1 sans-serif", color: "rgba(240,230,215,0.45)" }}>{c.mass}</span>
+                <span style={{ font: "12px/1.3 sans-serif", color: theme.text, flex: 1 }}>{c.label}</span>
+                <span style={{ font: "11px/1 sans-serif", color: theme.textFaint }}>{c.mass}</span>
               </div>
             ))}
-            <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.08)", font: "10.5px/1.4 sans-serif", color: "rgba(240,230,215,0.4)" }}>
+            <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${theme.chromeBorder}`, font: "10.5px/1.4 sans-serif", color: theme.textFaint }}>
               Number = thoughts orbiting it
             </div>
           </div>
@@ -312,8 +433,8 @@ export default function GraphView({
             right: embedded ? 24 : undefined,
             zIndex: 6,
             maxWidth: 400,
-            background: "rgba(20,16,12,0.86)",
-            border: "1px solid rgba(255,255,255,0.12)",
+            background: theme.chromeBg,
+            border: `1px solid ${theme.chromeBorder}`,
             borderRadius: 12,
             padding: "16px 18px",
             backdropFilter: "blur(8px)",
@@ -322,7 +443,7 @@ export default function GraphView({
           {selected.kind === "concept" ? (
             <>
               <div style={{ font: "600 15px/1.2 sans-serif", color: selected.color }}>{selected.label}</div>
-              <div style={{ marginTop: 6, font: "12.5px/1.5 sans-serif", color: "rgba(240,230,215,0.7)" }}>
+              <div style={{ marginTop: 6, font: "12.5px/1.5 sans-serif", color: theme.textDim }}>
                 A center of gravity for this session — the thicker its orbit, the more the group
                 circled back to it.
               </div>
@@ -331,14 +452,14 @@ export default function GraphView({
             <>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
                 <span style={{ font: "600 13px/1 sans-serif", color: selected.color }}>{selected.author}</span>
-                <span style={{ font: "11px/1 sans-serif", color: "rgba(240,230,215,0.4)" }}>{selected.timestamp?.slice(0, 10)}</span>
+                <span style={{ font: "11px/1 sans-serif", color: theme.textFaint }}>{selected.timestamp?.slice(0, 10)}</span>
               </div>
               {selected.quote && (
-                <div style={{ margin: "9px 0 0", padding: "6px 10px", borderLeft: "3px solid rgba(200,180,150,0.5)", font: "italic 12.5px/1.5 Georgia, serif", color: "rgba(240,230,215,0.6)" }}>
+                <div style={{ margin: "9px 0 0", padding: "6px 10px", borderLeft: "3px solid var(--clay)", font: "italic 12.5px/1.5 Georgia, serif", color: theme.textDim }}>
                   “{selected.quote}”
                 </div>
               )}
-              <div style={{ marginTop: 9, font: "14px/1.55 Georgia, serif", color: "rgba(240,230,215,0.9)" }}>{selected.text}</div>
+              <div style={{ marginTop: 9, font: "14px/1.55 Georgia, serif", color: theme.text }}>{selected.text}</div>
               {/* Concept tags: hidden by default, revealed (with a fade) when the card is hovered. */}
               {selected.concepts && selected.concepts.length > 0 && (
                 <div
@@ -367,7 +488,7 @@ export default function GraphView({
           )}
           <button
             onClick={() => setSelected(null)}
-            style={{ marginTop: 12, font: "11px/1 sans-serif", color: "rgba(240,230,215,0.5)", background: "none", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 6, padding: "5px 11px", cursor: "pointer" }}
+            style={{ marginTop: 12, font: "11px/1 sans-serif", color: theme.textDim, background: "none", border: `1px solid ${theme.chromeBorder}`, borderRadius: 6, padding: "5px 11px", cursor: "pointer" }}
           >
             Close
           </button>
@@ -375,11 +496,23 @@ export default function GraphView({
       )}
 
       {/* hint */}
-      <div style={{ position: "absolute", bottom: 20, right: 24, zIndex: 5, font: "11px/1.5 sans-serif", color: "rgba(240,230,215,0.35)", pointerEvents: "none", textAlign: "right" }}>
+      <div style={{ position: "absolute", bottom: 20, right: 24, zIndex: 5, font: "11px/1.5 sans-serif", color: theme.textFaint, pointerEvents: "none", textAlign: "right" }}>
         drag to orbit · scroll to zoom · click a node
       </div>
     </div>
   );
+}
+
+// Paint a theme onto a live graph instance: background, link colors, and hover tooltips (the
+// only theme-dependent three.js/DOM bits; node sphere colors are the same accents in every theme).
+function applyTheme(g: ForceGraphInstance, theme: Theme): void {
+  g.backgroundColor(theme.bg)
+    .linkColor((l) => (l.kind === "reply" ? theme.reply : theme.link))
+    .nodeLabel((n) =>
+      n.kind === "concept"
+        ? `<div style="font:600 13px sans-serif;color:${n.color};padding:2px 4px">${n.label}</div>`
+        : `<div style="max-width:240px;font:12px/1.45 sans-serif;color:${theme.tooltipText};background:${theme.tooltipBg};padding:7px 9px;border-radius:6px;border:1px solid ${theme.chromeBorder}"><b style="color:${n.color}">${n.author}</b><br/>${escapeHtml(n.label)}</div>`
+    );
 }
 
 // Ease the camera to sit a little way out from a node, looking at it. Concepts are big, so we
