@@ -7,7 +7,7 @@
 // Kept framework-free (no three.js, no React) so it can be unit-tested and reused; the
 // client view (app/graph/graph-view.tsx) only handles rendering.
 
-import type { Thought } from "@/app/session/session-view";
+import type { Thought } from "@/app/discussion/session-view";
 
 // A recurring concept the group orbits. `match` is the set of lowercase cues we scan each
 // thought's text + quoted passage for; any hit links that thought to this concept.

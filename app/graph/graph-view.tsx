@@ -11,7 +11,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildThoughtGraph, type GraphNode } from "@/lib/thought-graph";
-import type { Thought } from "@/app/session/session-view";
+import type { Thought } from "@/app/discussion/session-view";
 
 // 3d-force-graph's default export is a factory; we only need a loose handle to it here.
 type ForceGraphInstance = {

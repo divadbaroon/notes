@@ -1,7 +1,7 @@
 "use client";
 
 // The interactive half of /session. It's handed the essay markdown (read from
-// content/tools-for-thought.md) and the seed thoughts (content/session-3-thoughts.json)
+// content/tools-for-thought.md) and the seed thoughts (content/session-7-11-26-thoughts.json)
 // by the server page, and owns everything else client-side: the page-turnable "book"
 // reader beside a page-scoped thought stream (a slide-in drawer on mobile), plus the
 // add/reply/export controls. No network, no backend — additions live in this browser only.
