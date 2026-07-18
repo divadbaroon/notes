@@ -9,130 +9,49 @@
     "quote": "We're often asked: why don't you work on AGI or BCI instead of tools for thought?"
   },
   {
-    "id": "david-2",
-    "author": "David",
+    "id": "xiaohang-3",
+    "author": "Xiaohang",
     "timestamp": "2026-07-18T11:16:00",
-    "text": "\"Relatively low cost changes in practice produce transformative changes in outcome — non-linear returns and qualitative shifts in thinking\" → expands what you're capable of thinking",
+    "text": "Expands what you're capable of thinking of",
     "essayAnchor": null,
     "parentId": "david-1",
     "quote": null
   },
   {
-    "id": "moonwara-1",
-    "author": "Moonwara",
-    "timestamp": "2026-07-18T11:16:30",
-    "text": "Need these for self learning",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "Fashion is seductive."
-  },
-  {
-    "id": "joanne-1",
-    "author": "Joanne",
-    "timestamp": "2026-07-18T11:17:00",
-    "text": "Identify existing limits... can a limited mind comprehend its own limits?",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "how can we develop tools that change and expand the range of thoughts human beings can think?"
-  },
-  {
-    "id": "david-3",
+    "id": "david-2",
     "author": "David",
-    "timestamp": "2026-07-18T11:18:00",
-    "text": "Provocative — authentic pursuit vs. chasing trends",
+    "timestamp": "2026-07-18T11:17:00",
+    "text": "\"Relatively low cost changes in practice produce transformative changes in outcome — non-linear returns and qualitative shifts in thinking\"",
     "essayAnchor": null,
-    "parentId": null,
-    "quote": "Fashion is seductive."
+    "parentId": "david-1",
+    "quote": null
   },
   {
     "id": "xiaohang-1",
     "author": "Xiaohang",
-    "timestamp": "2026-07-18T11:18:30",
+    "timestamp": "2026-07-18T11:18:00",
     "text": "What are they?",
     "essayAnchor": null,
     "parentId": null,
     "quote": "And for AGI, in particular, many of the skills required seem related."
   },
   {
-    "id": "david-4",
-    "author": "David",
+    "id": "moonwara-1",
+    "author": "Moonwara",
     "timestamp": "2026-07-18T11:19:00",
-    "text": "What's the force/pull? Desire / status / FOMO — fear of missing out",
-    "essayAnchor": null,
-    "parentId": "david-3",
-    "quote": null
-  },
-  {
-    "id": "david-5",
-    "author": "David",
-    "timestamp": "2026-07-18T11:20:00",
-    "text": "Is the opposing force conviction?",
-    "essayAnchor": null,
-    "parentId": "david-3",
-    "quote": null
-  },
-  {
-    "id": "joanne-2",
-    "author": "Joanne",
-    "timestamp": "2026-07-18T11:20:30",
-    "text": "People wanted to develop specific solutions to specific problems, not 'develop a tool for thought'",
+    "text": "Need these for self learning",
     "essayAnchor": null,
     "parentId": null,
-    "quote": "But historically it's not the case that humanity's biggest breakthroughs have come about in this goal-driven way."
-  },
-  {
-    "id": "david-6",
-    "author": "David",
-    "timestamp": "2026-07-18T11:21:00",
-    "text": "Willingness to stay in an unpopular lane you believe in is very important",
-    "essayAnchor": null,
-    "parentId": "david-3",
-    "quote": null
-  },
-  {
-    "id": "xiaohang-2",
-    "author": "Xiaohang",
-    "timestamp": "2026-07-18T11:21:30",
-    "text": "Are there more specific ones?",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "how can we develop tools that change and expand the range of thoughts human beings can think?"
-  },
-  {
-    "id": "joanne-3",
-    "author": "Joanne",
-    "timestamp": "2026-07-18T11:22:00",
-    "text": "Curiosity presupposes there is a specific [unclear]",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "all emerged primarily out of open-ended exploration, not in a primarily goal-driven way."
-  },
-  {
-    "id": "david-7",
-    "author": "David",
-    "timestamp": "2026-07-18T11:23:00",
-    "text": "AGI/BCI have a vision and clear goal — they point to an artifact; tools for thought aim at a (beneficial) change in the human",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "One striking difference is that AGI and BCI are based on relatively specific, well-defined goals. By contrast, work on tools for thought is much less clearly defined."
+    "quote": "Fashion is seductive."
   },
   {
     "id": "david-8",
     "author": "David",
-    "timestamp": "2026-07-18T11:24:00",
+    "timestamp": "2026-07-18T11:25:00",
     "text": "Working on the unfashionable can also be a status move!",
     "essayAnchor": null,
     "parentId": "david-7",
     "quote": null
-  },
-  {
-    "id": "joanne-4",
-    "author": "Joanne",
-    "timestamp": "2026-07-18T11:24:30",
-    "text": "Retroactively goal-driven?",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "Out of those explorations the idea of a computer emerged, after many years; it was a discovered concept, not a goal."
   },
   {
     "id": "david-9",
@@ -144,45 +63,198 @@
     "quote": "range visions and aspirations, almost evocations"
   },
   {
+    "id": "joanne-1",
+    "author": "Joanne",
+    "timestamp": "2026-07-18T11:27:00",
+    "text": "Identify existing limits... can a limited mind comprehend its own limits?",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "how can we develop tools that change and expand the range of thoughts human beings can think?"
+  },
+  {
+    "id": "david-10",
+    "author": "David",
+    "timestamp": "2026-07-18T11:28:00",
+    "text": "Where are we limited — memory?",
+    "essayAnchor": null,
+    "parentId": "joanne-1",
+    "quote": null
+  },
+  {
+    "id": "joanne-15",
+    "author": "Joanne",
+    "timestamp": "2026-07-18T11:29:00",
+    "text": "Working memory",
+    "essayAnchor": null,
+    "parentId": "david-10",
+    "quote": null
+  },
+  {
+    "id": "joanne-16",
+    "author": "Joanne",
+    "timestamp": "2026-07-18T11:30:00",
+    "text": "Later we recall it, uncontrolled",
+    "essayAnchor": null,
+    "parentId": "joanne-15",
+    "quote": null
+  },
+  {
+    "id": "david-20",
+    "author": "David",
+    "timestamp": "2026-07-18T11:31:00",
+    "text": "Outside variables such as smell influence recall",
+    "essayAnchor": null,
+    "parentId": "joanne-16",
+    "quote": null
+  },
+  {
+    "id": "xiaohang-4",
+    "author": "Xiaohang",
+    "timestamp": "2026-07-18T11:32:00",
+    "text": "Original goal, not tool for thought",
+    "essayAnchor": null,
+    "parentId": "david-20",
+    "quote": null
+  },
+  {
+    "id": "david-21",
+    "author": "David",
+    "timestamp": "2026-07-18T11:33:00",
+    "text": "Many start from curiosity",
+    "essayAnchor": null,
+    "parentId": "xiaohang-4",
+    "quote": null
+  },
+  {
+    "id": "moonwara-2",
+    "author": "Moonwara",
+    "timestamp": "2026-07-18T11:34:00",
+    "text": "Curiosity and imagination are starting points",
+    "essayAnchor": null,
+    "parentId": "david-21",
+    "quote": null
+  },
+  {
+    "id": "xiaohang-2",
+    "author": "Xiaohang",
+    "timestamp": "2026-07-18T11:35:00",
+    "text": "Are there more specific ones?",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "how can we develop tools that change and expand the range of thoughts human beings can think?"
+  },
+  {
+    "id": "david-11",
+    "author": "David",
+    "timestamp": "2026-07-18T11:36:00",
+    "text": "When does goal-driven work vs. not? It works when the conceptual foundation is already there",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "Culturally, tech is dominated by an engineering, goal-driven mindset."
+  },
+  {
+    "id": "joanne-2",
+    "author": "Joanne",
+    "timestamp": "2026-07-18T11:37:00",
+    "text": "People wanted to develop specific solutions to specific problems, not 'develop a tool for thought'",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "But historically it's not the case that humanity's biggest breakthroughs have come about in this goal-driven way."
+  },
+  {
+    "id": "david-12",
+    "author": "David",
+    "timestamp": "2026-07-18T11:38:00",
+    "text": "Breakthroughs are often natural byproducts rather than explicit goals",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "It's amusing to try imagining some prehistoric quarterly OKRs leading to the development of language. What sort of goals could one possibly set? Perhaps a quota of new irregular verbs? It's inconceivable!"
+  },
+  {
+    "id": "joanne-3",
+    "author": "Joanne",
+    "timestamp": "2026-07-18T11:41:00",
+    "text": "Curiosity presupposes there is a specific [unclear]",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "all emerged primarily out of open-ended exploration, not in a primarily goal-driven way."
+  },
+  {
+    "id": "david-15",
+    "author": "David",
+    "timestamp": "2026-07-18T11:42:00",
+    "text": "Open-ended exploration — only clear later, in hindsight",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "pioneers such as Alan Turing and Alonzo Church were exploring extremely basic and fundamental (and seemingly esoteric) questions about logic, mathematics, and the nature of what is provable"
+  },
+  {
+    "id": "joanne-4",
+    "author": "Joanne",
+    "timestamp": "2026-07-18T11:43:00",
+    "text": "Retroactively goal-driven?",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "Out of those explorations the idea of a computer emerged, after many years; it was a discovered concept, not a goal."
+  },
+  {
     "id": "joanne-5",
     "author": "Joanne",
-    "timestamp": "2026-07-18T11:26:30",
+    "timestamp": "2026-07-18T11:44:00",
     "text": "Thesis. Start with a goal — goal evolves over time; stepping stones of goals [with branching tree sketch]",
     "essayAnchor": null,
     "parentId": null,
     "quote": "Fundamental, open-ended questions seem to be at least as good a source of breakthroughs as goals, no matter how ambitious."
   },
   {
-    "id": "david-10",
-    "author": "David",
-    "timestamp": "2026-07-18T11:27:00",
-    "text": "Where are we limited — memory? Can a limited mind even [unclear] — later we recall/connect [unclear]",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "how can we develop tools that change and expand the range of thoughts human beings can think?"
-  },
-  {
     "id": "joanne-6",
     "author": "Joanne",
-    "timestamp": "2026-07-18T11:27:30",
+    "timestamp": "2026-07-18T11:45:00",
     "text": "Open-ended isn't one set goal — multiple goals that spawn",
     "essayAnchor": null,
     "parentId": "joanne-5",
     "quote": null
   },
   {
-    "id": "david-11",
+    "id": "david-16",
     "author": "David",
-    "timestamp": "2026-07-18T11:29:00",
-    "text": "Apollo — when does goal-driven work vs. not? It works when the conceptual foundation is already there",
+    "timestamp": "2026-07-18T11:46:00",
+    "text": "Being gripped by a precise, deep question",
     "essayAnchor": null,
     "parentId": null,
-    "quote": "Culturally, tech is dominated by an engineering, goal-driven mindset."
+    "quote": "Fundamental, open-ended questions seem to be at least as good a source of breakthroughs as goals, no matter how ambitious."
+  },
+  {
+    "id": "moonwara-3",
+    "author": "Moonwara",
+    "timestamp": "2026-07-18T11:47:00",
+    "text": "One step goal",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": null
+  },
+  {
+    "id": "david-17",
+    "author": "David",
+    "timestamp": "2026-07-18T11:48:00",
+    "text": "Stepping stones of small goals lead to a novel goal",
+    "essayAnchor": null,
+    "parentId": "moonwara-3",
+    "quote": null
+  },
+  {
+    "id": "moonwara-4",
+    "author": "Moonwara",
+    "timestamp": "2026-07-18T11:49:00",
+    "text": "Novel goal is a byproduct of pursuit",
+    "essayAnchor": null,
+    "parentId": "david-17",
+    "quote": null
   },
   {
     "id": "joanne-7",
     "author": "Joanne",
-    "timestamp": "2026-07-18T11:29:30",
+    "timestamp": "2026-07-18T11:50:00",
     "text": "Not fundable → fundamentals + open-ended exploration (curiosity) = breakthrough, historically more often than goal-oriented (corporate) approach ← fundable",
     "essayAnchor": null,
     "parentId": null,
@@ -191,61 +263,34 @@
   {
     "id": "joanne-8",
     "author": "Joanne",
-    "timestamp": "2026-07-18T11:30:00",
+    "timestamp": "2026-07-18T11:51:00",
     "text": "Tradeoff of instant ($) vs delayed gratification — if ever?",
     "essayAnchor": null,
     "parentId": "joanne-7",
     "quote": null
   },
   {
-    "id": "david-12",
-    "author": "David",
-    "timestamp": "2026-07-18T11:31:00",
-    "text": "Breakthroughs are often natural byproducts rather than explicit goals",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "It's amusing to try imagining some prehistoric quarterly OKRs leading to the development of language. What sort of goals could one possibly set? Perhaps a quota of new irregular verbs? It's inconceivable!"
-  },
-  {
-    "id": "david-13",
-    "author": "David",
-    "timestamp": "2026-07-18T11:32:00",
-    "text": "Speech/writing — necessity from the environment [partially unclear]",
-    "essayAnchor": null,
-    "parentId": "david-12",
-    "quote": null
-  },
-  {
-    "id": "david-14",
-    "author": "David",
-    "timestamp": "2026-07-18T11:33:00",
-    "text": "How to solve [unclear — arrow pointing at 'writing']",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "Similarly, the invention of other tools for thought – writing, the printing press, and so on – are among our greatest ever breakthroughs."
-  },
-  {
     "id": "joanne-9",
     "author": "Joanne",
-    "timestamp": "2026-07-18T11:33:30",
+    "timestamp": "2026-07-18T11:52:00",
     "text": "Reminds me of Arrival — alien language → cross-time thinking",
     "essayAnchor": null,
     "parentId": null,
     "quote": "they would not be transforming a person's thinking, or even their consciousness."
   },
   {
-    "id": "david-15",
+    "id": "david-18",
     "author": "David",
-    "timestamp": "2026-07-18T11:35:00",
-    "text": "Open-ended exploration — only clear later, in hindsight",
+    "timestamp": "2026-07-18T11:53:00",
+    "text": "You can't evaluate a tool for thought from the outside — you have to live it",
     "essayAnchor": null,
     "parentId": null,
-    "quote": "pioneers such as Alan Turing and Alonzo Church were exploring extremely basic and fundamental (and seemingly esoteric) questions about logic, mathematics, and the nature of what is provable"
+    "quote": "\"What is it like to be a bat?\""
   },
   {
     "id": "joanne-10",
     "author": "Joanne",
-    "timestamp": "2026-07-18T11:35:30",
+    "timestamp": "2026-07-18T11:54:00",
     "text": "So how do you create something new if you have to be immersed in it?",
     "essayAnchor": null,
     "parentId": null,
@@ -254,70 +299,43 @@
   {
     "id": "joanne-11",
     "author": "Joanne",
-    "timestamp": "2026-07-18T11:36:00",
+    "timestamp": "2026-07-18T11:55:00",
     "text": "Accident, serendipity — immersion in nascent version?",
     "essayAnchor": null,
     "parentId": "joanne-10",
     "quote": null
   },
   {
-    "id": "david-16",
-    "author": "David",
-    "timestamp": "2026-07-18T11:37:00",
-    "text": "Being gripped by a precise, deep question",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "Fundamental, open-ended questions seem to be at least as good a source of breakthroughs as goals, no matter how ambitious."
-  },
-  {
-    "id": "david-17",
-    "author": "David",
-    "timestamp": "2026-07-18T11:38:00",
-    "text": "Stepping stones of small goals lead to a novel goal — byproduct",
-    "essayAnchor": null,
-    "parentId": "david-16",
-    "quote": null
-  },
-  {
-    "id": "joanne-12",
-    "author": "Joanne",
-    "timestamp": "2026-07-18T11:38:30",
-    "text": "Computer brain? Telepathy? Linearly encoded memory",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "BCI is sometimes described using ideas like a memory chip for long-term memories, or some way of increasing short-term working memory."
-  },
-  {
-    "id": "david-18",
-    "author": "David",
-    "timestamp": "2026-07-18T11:40:00",
-    "text": "You can't evaluate a tool for thought from the outside — you have to live it",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "\"What is it like to be a bat?\""
-  },
-  {
-    "id": "joanne-13",
-    "author": "Joanne",
-    "timestamp": "2026-07-18T11:40:30",
-    "text": "Is it possible to expand capability of brain? → cyborg like in Cinder",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "These are about changing the interface for thought, the basic abstractions and operations which are allowed."
-  },
-  {
     "id": "david-19",
     "author": "David",
-    "timestamp": "2026-07-18T11:42:00",
+    "timestamp": "2026-07-18T11:56:00",
     "text": "AI becoming the instrument → AI can discover novel representations → self-discovery",
     "essayAnchor": null,
     "parentId": null,
     "quote": "one of us has argued that one of the most promising applications for AI is as a way of discovering new tools for thought."
   },
   {
+    "id": "joanne-12",
+    "author": "Joanne",
+    "timestamp": "2026-07-18T11:57:00",
+    "text": "Computer brain? Telepathy? Linearly encoded memory",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "BCI is sometimes described using ideas like a memory chip for long-term memories, or some way of increasing short-term working memory."
+  },
+  {
+    "id": "joanne-13",
+    "author": "Joanne",
+    "timestamp": "2026-07-18T11:58:00",
+    "text": "Is it possible to expand capability of brain? → cyborg like in Cinder",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "These are about changing the interface for thought, the basic abstractions and operations which are allowed."
+  },
+  {
     "id": "joanne-14",
     "author": "Joanne",
-    "timestamp": "2026-07-18T11:42:30",
+    "timestamp": "2026-07-18T11:59:00",
     "text": "My idea: playback system — video, navigating 3D space in time according to order of discussion → sync it with highlighted text? Kind of like Gio's playback system paper",
     "essayAnchor": null,
     "parentId": null,

@@ -19,6 +19,7 @@ type ForceGraphInstance = {
   graphData: (d: unknown) => ForceGraphInstance;
   backgroundColor: (c: string) => ForceGraphInstance;
   showNavInfo: (b: boolean) => ForceGraphInstance;
+  numDimensions: (n: number) => ForceGraphInstance;
   nodeVal: (fn: (n: GraphNode) => number) => ForceGraphInstance;
   nodeColor: (fn: (n: GraphNode) => string) => ForceGraphInstance;
   nodeLabel: (fn: (n: GraphNode) => string) => ForceGraphInstance;
@@ -129,6 +130,14 @@ export default function GraphView({
   const [cardHover, setCardHover] = useState(false); // reveal the detail card's concept tags on hover
   const [themeKey, setThemeKey] = useState<ThemeKey>("warm"); // dark | warm | light — see THEMES
   const theme = THEMES[themeKey];
+  const [isNarrow, setIsNarrow] = useState(false); // phone-width: compact chrome so controls don't collide
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const sync = () => setIsNarrow(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
   // True while an external focus (playback) owns the camera, so a resize won't fight it.
   const focusActiveRef = useRef(false);
   useEffect(() => { focusActiveRef.current = !!focusNodeId; }, [focusNodeId]);
@@ -169,7 +178,15 @@ export default function GraphView({
     // to the panel width: it zooms in past the bounding-sphere fit so the node cloud fills the
     // landscape panel's width (z-depth would otherwise leave large side margins), and scales with
     // the panel so it fills consistently whether the window is narrow or very wide.
-    const fitPadding = () => (embedded ? -Math.round(el.clientWidth * 0.15) : 60);
+    const fitPadding = () => {
+      if (!embedded) return 60;
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      // Portrait/phone panels: use a small POSITIVE padding so zoomToFit reliably frames every
+      // node with a margin. (A negative "fill the width" padding over-zooms past the flat node
+      // plane on real mobile Safari — whose viewport differs from desktop — and hides everything.)
+      return h > w * 1.25 ? 12 : -Math.round(w * 0.15);
+    };
     let didInitialFit = false;
 
     (async () => {
@@ -178,8 +195,13 @@ export default function GraphView({
       if (disposed || !el) return;
       const ForceGraph3D = mod.default as unknown as () => ForceGraphInstance;
 
+      // On phones the panel is small & portrait; a flat (2D) layout has no z-depth, so nothing
+      // projects on top of anything else (no "clumping") and the cloud fills the panel far better.
+      const narrow = window.matchMedia("(max-width: 768px)").matches;
+
       const Graph = ForceGraph3D()(el)
         .showNavInfo(false) // hide the library's built-in controls line; we show our own hint
+        .numDimensions(narrow ? 2 : 3)
         .width(el.clientWidth)
         .height(el.clientHeight)
         .nodeVal((n) => n.val)
@@ -191,8 +213,9 @@ export default function GraphView({
         .nodeThreeObject((n) => {
           if (n.kind !== "concept") return null;
           const sprite = makeTextSprite(THREE, n.label, n.color);
-          // lift the caption just above the (large) hub sphere
-          sprite.position.set(0, Math.cbrt(n.val) * 4 + 6, 0);
+          // Lift the caption just above the (large) hub sphere. On phones use a smaller lift so the
+          // labels don't inflate the top of the zoom-to-fit box (which pushes the cloud down/small).
+          sprite.position.set(0, Math.cbrt(n.val) * (narrow ? 2.4 : 4) + (narrow ? 3 : 6), 0);
           return sprite;
         })
         .linkWidth((l) => (l.kind === "reply" ? 0.8 : 0.4))
@@ -202,7 +225,7 @@ export default function GraphView({
         .linkDirectionalParticleSpeed(0.006)
         .onNodeClick((n) => {
           setSelected(n);
-          moveCameraTo(graphRef.current, n, 900);
+          moveCameraTo(graphRef.current, n, 900, narrow);
         })
         .onBackgroundClick(() => setSelected(null))
         // A final fit once the simulation fully cools (safety net; may be many seconds out).
@@ -272,14 +295,14 @@ export default function GraphView({
       const g = graphRef.current;
       const positioned = (node as GraphNode & { x?: number }).x != null;
       if (g && positioned) {
-        moveCameraTo(g, node, 1100);
+        moveCameraTo(g, node, 1100, isNarrow);
         return;
       }
       if (tries++ < 45) timer = setTimeout(go, 120);
     };
     go();
     return () => clearTimeout(timer);
-  }, [focusNodeId, data]);
+  }, [focusNodeId, data, isNarrow]);
 
   // Live theme switch: repaint the already-created graph's background/links/tooltips.
   useEffect(() => {
@@ -327,17 +350,18 @@ export default function GraphView({
               title={`${THEMES[k].label} theme`}
               aria-pressed={active}
               style={{
-                font: "600 10.5px/1 sans-serif",
-                letterSpacing: "0.04em",
+                font: `600 ${isNarrow ? 9.5 : 10.5}px/1 sans-serif`,
+                letterSpacing: "0.03em",
                 color: active ? theme.text : theme.textFaint,
                 background: active ? "rgba(140,130,115,0.22)" : "none",
                 border: "none",
                 borderRadius: 6,
-                padding: "5px 9px",
+                padding: isNarrow ? "4px 6px" : "5px 9px",
                 cursor: "pointer",
               }}
             >
-              {THEMES[k].label}
+              {/* On phones, single-letter labels keep the switcher small enough to clear the legend */}
+              {isNarrow ? THEMES[k].label[0] : THEMES[k].label}
             </button>
           );
         })}
@@ -356,14 +380,16 @@ export default function GraphView({
         </div>
       )}
 
-      {/* Legend — concepts by mass. A collapsible dropdown pinned to the right, closed by default. */}
+      {/* Legend — concepts by mass. A collapsible dropdown pinned to the right, closed by default.
+          Collapsed it shrinks to fit its label (so it clears the theme switcher on phones); open it
+          takes a fixed comfortable width for the list. */}
       <div
         style={{
           position: "absolute",
           top: embedded ? 12 : 20,
           right: embedded ? 12 : 24,
           zIndex: 5,
-          width: 216,
+          width: legendOpen ? 216 : "auto",
           maxWidth: "calc(100% - 24px)",
           background: theme.chromeBg,
           border: `1px solid ${theme.chromeBorder}`,
@@ -389,8 +415,8 @@ export default function GraphView({
             cursor: "pointer",
           }}
         >
-          <span style={{ font: "600 10px/1 sans-serif", letterSpacing: "0.12em", textTransform: "uppercase", color: theme.textDim }}>
-            Centers of gravity
+          <span style={{ font: "600 10px/1 sans-serif", letterSpacing: "0.12em", textTransform: "uppercase", color: theme.textDim, whiteSpace: "nowrap" }}>
+            {isNarrow && !legendOpen ? "Gravity" : "Centers of gravity"}
           </span>
           {/* chevron rotates when open */}
           <span
@@ -517,9 +543,19 @@ function applyTheme(g: ForceGraphInstance, theme: Theme): void {
 
 // Ease the camera to sit a little way out from a node, looking at it. Concepts are big, so we
 // pull back farther for them than for a thought. No-op until the node has a settled position.
-function moveCameraTo(g: ForceGraphInstance | null, node: GraphNode, ms: number): void {
+// `flat` = the mobile 2D layout, where every node lies in the z=0 plane: there we must keep the
+// camera ABOVE the plane looking straight down, or scaling the (zero) z lands it coplanar with the
+// nodes and the whole flat graph disappears edge-on.
+function moveCameraTo(g: ForceGraphInstance | null, node: GraphNode, ms: number, flat: boolean): void {
   const n = node as GraphNode & { x?: number; y?: number; z?: number };
   if (!g || n.x == null) return;
+  if (flat) {
+    // In 2D the nodes have no z at all (undefined, not 0), so we must give the camera an explicit
+    // look-at point with z:0 — passing the node would put NaN in its z and blank the view.
+    const dist = node.kind === "concept" ? 190 : 120;
+    g.cameraPosition({ x: n.x, y: n.y!, z: dist }, { x: n.x, y: n.y!, z: 0 }, ms);
+    return;
+  }
   const dist = node.kind === "concept" ? 150 : 80;
   const r = Math.hypot(n.x, n.y!, n.z!) || 1;
   g.cameraPosition(
