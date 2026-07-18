@@ -18,15 +18,6 @@
     "quote": null
   },
   {
-    "id": "david-2",
-    "author": "David",
-    "timestamp": "2026-07-18T11:17:00",
-    "text": "\"Relatively low cost changes in practice produce transformative changes in outcome — non-linear returns and qualitative shifts in thinking\"",
-    "essayAnchor": null,
-    "parentId": "david-1",
-    "quote": null
-  },
-  {
     "id": "xiaohang-1",
     "author": "Xiaohang",
     "timestamp": "2026-07-18T11:18:00",
@@ -34,15 +25,6 @@
     "essayAnchor": null,
     "parentId": null,
     "quote": "And for AGI, in particular, many of the skills required seem related."
-  },
-  {
-    "id": "moonwara-1",
-    "author": "Moonwara",
-    "timestamp": "2026-07-18T11:19:00",
-    "text": "Need these for self learning",
-    "essayAnchor": null,
-    "parentId": null,
-    "quote": "Fashion is seductive."
   },
   {
     "id": "david-8",
@@ -75,7 +57,7 @@
     "id": "david-10",
     "author": "David",
     "timestamp": "2026-07-18T11:28:00",
-    "text": "Where are we limited — memory?",
+    "text": "Where are we limited?",
     "essayAnchor": null,
     "parentId": "joanne-1",
     "quote": null
