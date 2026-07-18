@@ -50,8 +50,8 @@
     "timestamp": "2026-07-18T11:25:00",
     "text": "Working on the unfashionable can also be a status move!",
     "essayAnchor": null,
-    "parentId": "david-7",
-    "quote": null
+    "parentId": null,
+    "quote": "Fashion is seductive."
   },
   {
     "id": "david-9",
@@ -231,7 +231,7 @@
     "text": "One step goal",
     "essayAnchor": null,
     "parentId": null,
-    "quote": null
+    "quote": "Fundamental, open-ended questions seem to be at least as good a source of breakthroughs as goals, no matter how ambitious."
   },
   {
     "id": "david-17",

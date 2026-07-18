@@ -79,6 +79,10 @@ export type GraphNode = {
   quote?: string | null;
   timestamp?: string;
   concepts?: string[]; // concept ids this thought links to
+  // Reply metadata (thought nodes only) — set when this thought replies to another in the set.
+  parentId?: string | null;
+  replyToAuthor?: string;
+  replyToText?: string;
 };
 
 export type GraphLink = {
@@ -116,15 +120,16 @@ function shortLabel(s: string, n = 46): string {
   return clean.length > n ? clean.slice(0, n - 1).trimEnd() + "…" : clean;
 }
 
-// Build the full graph. Every thought becomes a node linked to each concept it touches (its
-// orbits); a thought that matched nothing is tethered to a neutral "Open threads" concept so it
-// still has a home rather than drifting off alone. Reply relationships (parentId) become a second
-// kind of link so threads stay visibly stitched together.
+// Build the full graph. A top-level thought orbits each concept it touches (its centers of
+// gravity); a reply instead hangs off the thought it answers — a chain of sub-thoughts off the
+// original — so threads read as visible branches rather than each reply floating to a concept on
+// its own. A thought that matched nothing is tethered to a neutral "Open threads" concept. Every
+// thought (replies included) still counts toward concept mass, so the hub sizes are unchanged.
 export function buildThoughtGraph(thoughts: Thought[]): ThoughtGraph {
-  const orbitCount = new Map<string, number>(); // concept id → thoughts orbiting it
+  const orbitCount = new Map<string, number>(); // concept id → thoughts touching it (mass)
   const links: GraphLink[] = [];
   const thoughtNodes: GraphNode[] = [];
-  const ids = new Set(thoughts.map((t) => t.id));
+  const byId = new Map(thoughts.map((t) => [t.id, t]));
 
   const UNSORTED = "open-threads";
   let usedUnsorted = false;
@@ -135,13 +140,14 @@ export function buildThoughtGraph(thoughts: Thought[]): ThoughtGraph {
       concepts = [UNSORTED];
       usedUnsorted = true;
     }
+    // A reply is one whose parent is present in this set; it attaches to the parent, not concepts.
+    const parent = t.parentId ? byId.get(t.parentId) ?? null : null;
     for (const c of concepts) {
-      orbitCount.set(c, (orbitCount.get(c) ?? 0) + 1);
-      links.push({ source: t.id, target: c, kind: "orbit" });
+      orbitCount.set(c, (orbitCount.get(c) ?? 0) + 1); // mass counts every thought
+      if (!parent) links.push({ source: t.id, target: c, kind: "orbit" }); // only top-level orbits
     }
-    // reply edge — only if the parent is present in this set
-    if (t.parentId && ids.has(t.parentId)) {
-      links.push({ source: t.id, target: t.parentId, kind: "reply" });
+    if (parent) {
+      links.push({ source: t.id, target: parent.id, kind: "reply" });
     }
     thoughtNodes.push({
       id: t.id,
@@ -154,6 +160,9 @@ export function buildThoughtGraph(thoughts: Thought[]): ThoughtGraph {
       quote: t.quote ?? null,
       timestamp: t.timestamp,
       concepts,
+      parentId: parent ? parent.id : null,
+      replyToAuthor: parent?.author,
+      replyToText: parent?.text,
     });
   }
 

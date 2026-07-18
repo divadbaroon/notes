@@ -126,6 +126,8 @@ export default function GraphView({
   const mountRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<ForceGraphInstance | null>(null);
   const [selected, setSelected] = useState<GraphNode | null>(null);
+  const selectedIdRef = useRef<string | null>(null); // id of the glowing node (read by node accessor)
+  const refreshHighlightRef = useRef<(() => void) | null>(null); // re-paints the glow on change
   const [legendOpen, setLegendOpen] = useState(false); // right-side "centers of gravity" dropdown
   const [cardHover, setCardHover] = useState(false); // reveal the detail card's concept tags on hover
   const [themeKey, setThemeKey] = useState<ThemeKey>("warm"); // dark | warm | light — see THEMES
@@ -199,6 +201,27 @@ export default function GraphView({
       // projects on top of anything else (no "clumping") and the cloud fills the panel far better.
       const narrow = window.matchMedia("(max-width: 768px)").matches;
 
+      // Per-node 3D extras: concept hubs carry their floating caption; the selected node also gets
+      // a soft glow halo in its own colour.
+      const nodeThreeAccessor = (n: GraphNode): import("three").Object3D | null => {
+        const parts: import("three").Object3D[] = [];
+        if (n.kind === "concept") {
+          const sprite = makeTextSprite(THREE, n.label, n.color);
+          // Lift the caption above the hub sphere; smaller lift on phones so labels don't inflate
+          // the zoom-to-fit box (which would push the cloud down/small).
+          sprite.position.set(0, Math.cbrt(n.val) * (narrow ? 2.4 : 4) + (narrow ? 3 : 6), 0);
+          parts.push(sprite);
+        }
+        if (n.id === selectedIdRef.current) {
+          parts.push(makeGlowSprite(THREE, n.color, Math.cbrt(n.val) * 6 + 9));
+        }
+        if (parts.length === 0) return null;
+        if (parts.length === 1) return parts[0];
+        const group = new THREE.Group();
+        parts.forEach((p) => group.add(p));
+        return group;
+      };
+
       const Graph = ForceGraph3D()(el)
         .showNavInfo(false) // hide the library's built-in controls line; we show our own hint
         .numDimensions(narrow ? 2 : 3)
@@ -208,16 +231,9 @@ export default function GraphView({
         .nodeColor((n) => n.color)
         .nodeResolution(16)
         .nodeOpacity(0.92)
-        // Concept hubs also get a floating text sprite so the centers of gravity are labeled in 3D.
+        // Concept hubs get a floating text caption; the selected node also gets a soft glow halo.
         .nodeThreeObjectExtend(true)
-        .nodeThreeObject((n) => {
-          if (n.kind !== "concept") return null;
-          const sprite = makeTextSprite(THREE, n.label, n.color);
-          // Lift the caption just above the (large) hub sphere. On phones use a smaller lift so the
-          // labels don't inflate the top of the zoom-to-fit box (which pushes the cloud down/small).
-          sprite.position.set(0, Math.cbrt(n.val) * (narrow ? 2.4 : 4) + (narrow ? 3 : 6), 0);
-          return sprite;
-        })
+        .nodeThreeObject(nodeThreeAccessor)
         .linkWidth((l) => (l.kind === "reply" ? 0.8 : 0.4))
         .linkOpacity(0.5)
         .linkDirectionalParticles((l) => (l.kind === "reply" ? 2 : 0))
@@ -231,6 +247,12 @@ export default function GraphView({
         // A final fit once the simulation fully cools (safety net; may be many seconds out).
         .onEngineStop(() => { if (!focusActiveRef.current) Graph.zoomToFit(600, fitPadding()); })
         .graphData(data);
+
+      // Re-evaluate the node three-objects so the newly-selected node glows (and the previous one
+      // stops). A fresh wrapper closure each call so kapsule always repaints.
+      refreshHighlightRef.current = () => {
+        graphRef.current?.nodeThreeObject((n) => nodeThreeAccessor(n));
+      };
 
       // Paint the current theme (background/links/tooltips). Live theme switches are handled by a
       // separate effect below; here we set the initial look from the latest chosen theme.
@@ -308,6 +330,12 @@ export default function GraphView({
   useEffect(() => {
     if (graphRef.current) applyTheme(graphRef.current, theme);
   }, [theme]);
+
+  // Glow the selected node; clears when nothing is selected.
+  useEffect(() => {
+    selectedIdRef.current = selected?.id ?? null;
+    refreshHighlightRef.current?.();
+  }, [selected]);
 
   return (
     <div
@@ -477,9 +505,28 @@ export default function GraphView({
           ) : (
             <>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
-                <span style={{ font: "600 13px/1 sans-serif", color: selected.color }}>{selected.author}</span>
+                <span style={{ display: "inline-flex", alignItems: "baseline", gap: 7 }}>
+                  <span style={{ font: "600 13px/1 sans-serif", color: selected.color }}>{selected.author}</span>
+                  {selected.replyToAuthor && (
+                    // Obvious "this is a reply" badge, in the same green as the reply links.
+                    <span style={{ font: "600 9.5px/1 sans-serif", letterSpacing: "0.06em", textTransform: "uppercase", color: REPLY_GREEN, border: `1px solid ${REPLY_GREEN}`, borderRadius: 999, padding: "3px 7px" }}>
+                      ↳ Reply
+                    </span>
+                  )}
+                </span>
                 <span style={{ font: "11px/1 sans-serif", color: theme.textFaint }}>{selected.timestamp?.slice(0, 10)}</span>
               </div>
+              {selected.replyToAuthor && (
+                // What this thought is replying to — parent author + a snippet of their thought.
+                <div style={{ margin: "9px 0 0", padding: "6px 10px", borderLeft: `3px solid ${REPLY_GREEN}`, background: "rgba(122,155,122,0.1)", borderRadius: 4 }}>
+                  <div style={{ font: "600 10px/1.3 sans-serif", letterSpacing: "0.05em", textTransform: "uppercase", color: REPLY_GREEN }}>
+                    Replying to {selected.replyToAuthor}
+                  </div>
+                  <div style={{ marginTop: 3, font: "italic 12px/1.45 Georgia, serif", color: theme.textDim }}>
+                    {truncate(selected.replyToText ?? "", 96)}
+                  </div>
+                </div>
+              )}
               {selected.quote && (
                 <div style={{ margin: "9px 0 0", padding: "6px 10px", borderLeft: "3px solid var(--clay)", font: "italic 12.5px/1.5 Georgia, serif", color: theme.textDim }}>
                   “{selected.quote}”
@@ -567,6 +614,52 @@ function moveCameraTo(g: ForceGraphInstance | null, node: GraphNode, ms: number,
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
+}
+
+// Green used for reply links + the card's reply badge/banner (the --turtle token).
+const REPLY_GREEN = "#7a9b7a";
+
+// Parse a #rrggbb / #rgb hex to [r,g,b] (0–255). Falls back to warm grey on anything else.
+function hexToRgb(hex: string): [number, number, number] {
+  let h = hex.trim().replace(/^#/, "");
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  const int = parseInt(h, 16);
+  if (h.length !== 6 || Number.isNaN(int)) return [200, 180, 150];
+  return [(int >> 16) & 255, (int >> 8) & 255, int & 255];
+}
+
+// A soft radial-gradient sprite in the node's colour, additively blended — a *slight* glow so the
+// selected node reads as gently lit. `size` is its world-space diameter.
+function makeGlowSprite(THREE: typeof import("three"), color: string, size: number): import("three").Sprite {
+  const [r, g, b] = hexToRgb(color);
+  const d = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = d;
+  const ctx = canvas.getContext("2d")!;
+  const grad = ctx.createRadialGradient(d / 2, d / 2, 0, d / 2, d / 2, d / 2);
+  // Gentle and tight: a soft core that fades to transparent well before the sprite edge, so the
+  // glow hugs the node rather than spreading far out.
+  grad.addColorStop(0, `rgba(${r},${g},${b},0.6)`);
+  grad.addColorStop(0.3, `rgba(${r},${g},${b},0.22)`);
+  grad.addColorStop(0.62, `rgba(${r},${g},${b},0)`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, d, d);
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    depthWrite: false,
+  });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(size, size, 1);
+  return sprite;
+}
+
+// Trim text to a legible snippet for the card's "replying to" banner.
+function truncate(s: string, n: number): string {
+  const clean = s.replace(/\s+/g, " ").trim();
+  return clean.length > n ? clean.slice(0, n - 1).trimEnd() + "…" : clean;
 }
 
 // A cheap canvas-texture text sprite so concept hubs carry a legible 3D caption.
