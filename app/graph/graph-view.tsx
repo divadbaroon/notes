@@ -129,7 +129,6 @@ export default function GraphView({
   const selectedIdRef = useRef<string | null>(null); // id of the glowing node (read by node accessor)
   const refreshHighlightRef = useRef<(() => void) | null>(null); // re-paints the glow on change
   const [legendOpen, setLegendOpen] = useState(false); // right-side "centers of gravity" dropdown
-  const [cardHover, setCardHover] = useState(false); // reveal the detail card's concept tags on hover
   const [themeKey, setThemeKey] = useState<ThemeKey>("warm"); // dark | warm | light — see THEMES
   const theme = THEMES[themeKey];
   const [isNarrow, setIsNarrow] = useState(false); // phone-width: compact chrome so controls don't collide
@@ -478,8 +477,6 @@ export default function GraphView({
       {/* Selected-node detail */}
       {selected && (
         <div
-          onMouseEnter={() => setCardHover(true)}
-          onMouseLeave={() => setCardHover(false)}
           style={{
             position: "absolute",
             bottom: 24,
@@ -533,28 +530,33 @@ export default function GraphView({
                 </div>
               )}
               <div style={{ marginTop: 9, font: "14px/1.55 Georgia, serif", color: theme.text }}>{selected.text}</div>
-              {/* Concept tags: hidden by default, revealed (with a fade) when the card is hovered. */}
+              {/* Which center(s) of gravity this thought orbits — always shown, each pill filled in
+                  the concept's own colour so it clearly matches the hub node it connects to. */}
               {selected.concepts && selected.concepts.length > 0 && (
-                <div
-                  style={{
-                    overflow: "hidden",
-                    maxHeight: cardHover ? 160 : 0,
-                    marginTop: cardHover ? 11 : 0,
-                    opacity: cardHover ? 1 : 0,
-                    transition: "max-height 220ms ease, opacity 200ms ease, margin-top 220ms ease",
-                  }}
-                >
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {selected.concepts.map((cid) => {
-                      const c = legend.find((l) => l.id === cid);
-                      if (!c) return null;
-                      return (
-                        <span key={cid} style={{ font: "11px/1 sans-serif", color: c.color, border: `1px solid ${c.color}`, borderRadius: 999, padding: "3px 9px", opacity: 0.85 }}>
-                          {c.label}
-                        </span>
-                      );
-                    })}
-                  </div>
+                <div style={{ marginTop: 11, display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                  <span style={{ font: "600 9.5px/1 sans-serif", letterSpacing: "0.07em", textTransform: "uppercase", color: theme.textFaint }}>
+                    Orbits
+                  </span>
+                  {selected.concepts.map((cid) => {
+                    const c = legend.find((l) => l.id === cid);
+                    if (!c) return null;
+                    return (
+                      <span
+                        key={cid}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          font: "600 11px/1 sans-serif",
+                          color: "#fdf9f2",
+                          background: c.color,
+                          borderRadius: 999,
+                          padding: "4px 10px",
+                        }}
+                      >
+                        {c.label}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </>
