@@ -18,6 +18,7 @@ type ForceGraphInstance = {
   (el: HTMLElement): ForceGraphInstance;
   graphData: (d: unknown) => ForceGraphInstance;
   backgroundColor: (c: string) => ForceGraphInstance;
+  showNavInfo: (b: boolean) => ForceGraphInstance;
   nodeVal: (fn: (n: GraphNode) => number) => ForceGraphInstance;
   nodeColor: (fn: (n: GraphNode) => string) => ForceGraphInstance;
   nodeLabel: (fn: (n: GraphNode) => string) => ForceGraphInstance;
@@ -101,6 +102,8 @@ export default function GraphView({
 
       const Graph = ForceGraph3D()(el)
         .backgroundColor("#0f0d0b")
+        .showNavInfo(false) // hide the library's built-in controls line; we show our own hint
+
         .width(el.clientWidth)
         .height(el.clientHeight)
         .nodeVal((n) => n.val)
