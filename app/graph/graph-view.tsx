@@ -39,6 +39,8 @@ type ForceGraphInstance = {
   zoomToFit: (ms?: number, px?: number, nodeFilter?: (n: GraphNode) => boolean) => ForceGraphInstance;
   d3Force: (name: string) => { distance?: (fn: (l: GraphLinkObj) => number) => void; strength?: (v: number | ((n: GraphNode) => number)) => void } | undefined;
   d3VelocityDecay: (v: number) => ForceGraphInstance;
+  warmupTicks: (n: number) => ForceGraphInstance;
+  cooldownTicks: (n: number) => ForceGraphInstance;
   cameraPosition: (pos: { x: number; y: number; z: number }, lookAt?: unknown, ms?: number) => ForceGraphInstance;
   width: (w: number) => ForceGraphInstance;
   height: (h: number) => ForceGraphInstance;
@@ -247,7 +249,21 @@ export default function GraphView({
         .onBackgroundClick(() => setSelected(null))
         // A final fit once the simulation fully cools (safety net; may be many seconds out).
         .onEngineStop(() => { if (!focusActiveRef.current) Graph.zoomToFit(600, fitPadding()); })
-        .graphData(data);
+        // Pre-run the layout before the first paint (with the real forces set below) so every node —
+        // including the first one playback flies to — is already at rest. Otherwise the camera aims
+        // at a still-drifting node and ends up staring at empty space (the "void").
+        .warmupTicks(220);
+
+      // Physics — set BEFORE graphData so the warmup ticks run with THESE forces, not the defaults.
+      // Concept hubs pull hard and spread apart; thoughts barely repel so they cluster on their hub.
+      // Orbit links sit farther out than reply links so replies visibly bunch beside their parent.
+      const linkForce = Graph.d3Force("link");
+      linkForce?.distance?.((l: GraphLinkObj) => (l.kind === "reply" ? 14 : 46));
+      const charge = Graph.d3Force("charge");
+      charge?.strength?.((n: GraphNode) => (n.kind === "concept" ? -420 : -18));
+      Graph.d3VelocityDecay(0.28);
+
+      Graph.graphData(data); // ignite — runs the warmup ticks first, then renders a settled layout
 
       // Re-evaluate the node three-objects so the newly-selected node glows (and the previous one
       // stops). A fresh wrapper closure each call so kapsule always repaints.
@@ -260,16 +276,6 @@ export default function GraphView({
       // Paint the current theme (background/links/tooltips). Live theme switches are handled by a
       // separate effect below; here we set the initial look from the latest chosen theme.
       applyTheme(Graph, themeRef.current);
-
-      // Physics: give the heavy concept hubs a strong pull and let thoughts settle into orbits.
-      // Orbit links sit farther out than reply links so replies visibly bunch beside their parent.
-      const linkForce = Graph.d3Force("link");
-      linkForce?.distance?.((l: GraphLinkObj) => (l.kind === "reply" ? 14 : 46));
-      const charge = Graph.d3Force("charge");
-      // Concepts repel hard (spreading the centers of gravity apart); thoughts barely repel so
-      // they cluster tightly around whichever concept holds them.
-      charge?.strength?.((n: GraphNode) => (n.kind === "concept" ? -420 : -18));
-      Graph.d3VelocityDecay(0.28);
 
       graphRef.current = Graph;
 
