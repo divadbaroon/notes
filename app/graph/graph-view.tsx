@@ -128,6 +128,7 @@ export default function GraphView({
   const [selected, setSelected] = useState<GraphNode | null>(null);
   const selectedIdRef = useRef<string | null>(null); // id of the glowing node (read by node accessor)
   const refreshHighlightRef = useRef<(() => void) | null>(null); // re-paints the glow on change
+  const [cardHover, setCardHover] = useState(false); // reveal the card's concept badge on hover
   const [legendOpen, setLegendOpen] = useState(false); // right-side "centers of gravity" dropdown
   const [themeKey, setThemeKey] = useState<ThemeKey>("warm"); // dark | warm | light — see THEMES
   const theme = THEMES[themeKey];
@@ -477,6 +478,8 @@ export default function GraphView({
       {/* Selected-node detail */}
       {selected && (
         <div
+          onMouseEnter={() => setCardHover(true)}
+          onMouseLeave={() => setCardHover(false)}
           style={{
             position: "absolute",
             bottom: 24,
@@ -530,33 +533,44 @@ export default function GraphView({
                 </div>
               )}
               <div style={{ marginTop: 9, font: "14px/1.55 Georgia, serif", color: theme.text }}>{selected.text}</div>
-              {/* Which center(s) of gravity this thought orbits — always shown, each pill filled in
-                  the concept's own colour so it clearly matches the hub node it connects to. */}
+              {/* Which center(s) of gravity this thought orbits — hidden by default, revealed (with a
+                  fade) on hover. Each pill is filled in the concept's own colour so it clearly
+                  matches the hub node it connects to. */}
               {selected.concepts && selected.concepts.length > 0 && (
-                <div style={{ marginTop: 11, display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
-                  <span style={{ font: "600 9.5px/1 sans-serif", letterSpacing: "0.07em", textTransform: "uppercase", color: theme.textFaint }}>
-                    Orbits
-                  </span>
-                  {selected.concepts.map((cid) => {
-                    const c = legend.find((l) => l.id === cid);
-                    if (!c) return null;
-                    return (
-                      <span
-                        key={cid}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          font: "600 11px/1 sans-serif",
-                          color: "#fdf9f2",
-                          background: c.color,
-                          borderRadius: 999,
-                          padding: "4px 10px",
-                        }}
-                      >
-                        {c.label}
-                      </span>
-                    );
-                  })}
+                <div
+                  style={{
+                    overflow: "hidden",
+                    maxHeight: cardHover ? 120 : 0,
+                    marginTop: cardHover ? 11 : 0,
+                    opacity: cardHover ? 1 : 0,
+                    transition: "max-height 220ms ease, opacity 200ms ease, margin-top 220ms ease",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                    <span style={{ font: "600 9.5px/1 sans-serif", letterSpacing: "0.07em", textTransform: "uppercase", color: theme.textFaint }}>
+                      Orbits
+                    </span>
+                    {selected.concepts.map((cid) => {
+                      const c = legend.find((l) => l.id === cid);
+                      if (!c) return null;
+                      return (
+                        <span
+                          key={cid}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            font: "600 11px/1 sans-serif",
+                            color: "#fdf9f2",
+                            background: c.color,
+                            borderRadius: 999,
+                            padding: "4px 10px",
+                          }}
+                        >
+                          {c.label}
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </>
