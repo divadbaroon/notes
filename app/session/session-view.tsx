@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { renderNoteBody } from "@/lib/markdown/render";
+import GraphView from "@/app/graph/graph-view";
 
 export type Thought = {
   id: string;
@@ -187,6 +188,7 @@ export default function SessionView({
   const [formOpen, setFormOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false); // mobile: thought-stream drawer open
   const [showHint, setShowHint] = useState(false); // mobile: first-load "tap here for thoughts" nudge
+  const [streamView, setStreamView] = useState<"stream" | "graph">("stream"); // right panel: list vs. 3D concept map
 
   const streamRef = useRef<HTMLDivElement>(null);
   const composerRef = useRef<HTMLDivElement>(null);
@@ -963,23 +965,36 @@ export default function SessionView({
           <div style={{ padding: "16px 20px 14px", flexShrink: 0, borderBottom: "1px solid var(--card-border)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
               <span style={{ fontFamily: "var(--font-body)", fontStyle: "italic", fontSize: 16, color: "var(--text)" }}>
-                Thought stream
+                {streamView === "graph" ? "Concept map" : "Thought stream"}
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {/* Toggle the right panel between the thought list and the 3D concept map */}
                 <button
-                  // Desktop: capture the live essay highlight (selection survives the button click).
-                  // Mobile: the selection was already cleared by opening the drawer, so keep what the
-                  // hamburger captured rather than clobbering it with an empty selection.
-                  onMouseDown={() => { const live = readEssaySelection(); if (live || !isMobileViewport()) pendingQuoteRef.current = live; }}
-                  onClick={openComposer}
-                  className={`add-thought-btn${formOpen ? " open" : ""}`}
-                  title="Add a thought (highlight a passage first to attach it)"
+                  onClick={() => setStreamView((v) => (v === "stream" ? "graph" : "stream"))}
+                  className="stream-ghost"
+                  title={streamView === "stream" ? "Show the 3D concept map" : "Show the thought list"}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
                 >
-                  <span className="plus">+</span> Add thought
+                  {streamView === "stream" ? "◎ 3D map" : "≡ Thoughts"}
                 </button>
-                <button onClick={exportJson} className="stream-ghost" title="Copy all thoughts as JSON">
-                  {copied ? "Copied ✓" : "Export"}
-                </button>
+                {streamView === "stream" && (
+                  <>
+                    <button
+                      // Desktop: capture the live essay highlight (selection survives the button click).
+                      // Mobile: the selection was already cleared by opening the drawer, so keep what the
+                      // hamburger captured rather than clobbering it with an empty selection.
+                      onMouseDown={() => { const live = readEssaySelection(); if (live || !isMobileViewport()) pendingQuoteRef.current = live; }}
+                      onClick={openComposer}
+                      className={`add-thought-btn${formOpen ? " open" : ""}`}
+                      title="Add a thought (highlight a passage first to attach it)"
+                    >
+                      <span className="plus">+</span> Add thought
+                    </button>
+                    <button onClick={exportJson} className="stream-ghost" title="Copy all thoughts as JSON">
+                      {copied ? "Copied ✓" : "Export"}
+                    </button>
+                  </>
+                )}
                 <button
                   className="session-stream-close"
                   onClick={() => setMenuOpen(false)}
@@ -1089,7 +1104,16 @@ export default function SessionView({
           )}
           </div>
 
-          {/* The stream — only the thoughts anchored to the page currently on screen */}
+          {/* Graph mode: the 3D "centers of gravity" concept map fills the panel body. Fed the
+              live thought set (seed + local additions) so new thoughts appear as orbiting nodes. */}
+          {streamView === "graph" && (
+            <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
+              <GraphView thoughts={thoughts} embedded />
+            </div>
+          )}
+
+          {/* Stream mode: the thoughts anchored to the page currently on screen, plus page context */}
+          {streamView === "stream" && (<>
           <div ref={streamRef} style={{ flex: 1, overflowY: "auto", padding: "6px 20px 40px" }}>
             {visibleThoughts.length === 0 ? (
               <div style={{ padding: "26px 8px", textAlign: "center" }}>
@@ -1301,6 +1325,7 @@ export default function SessionView({
               {visibleThoughts.length === 0 ? "no thoughts here" : `${visibleThoughts.length} thought${visibleThoughts.length > 1 ? "s" : ""} here`}
             </span>
           </div>
+          </>)}
         </aside>
       </div>
     </div>
