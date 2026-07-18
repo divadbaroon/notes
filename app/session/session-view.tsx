@@ -190,6 +190,13 @@ export default function SessionView({
   const [showHint, setShowHint] = useState(false); // mobile: first-load "tap here for thoughts" nudge
   const [streamView, setStreamView] = useState<"stream" | "graph">("stream"); // right panel: list vs. 3D concept map
 
+  // Playback: step through the thoughts in order, turning the book to each thought's page +
+  // flashing its line while the 3D map flies its camera to that thought's node.
+  const [playing, setPlaying] = useState(false);
+  const [playIndex, setPlayIndex] = useState(0);
+  const [playFocusId, setPlayFocusId] = useState<string | null>(null); // node the map should focus
+  const stopPlayback = useCallback(() => setPlaying(false), []);
+
   const streamRef = useRef<HTMLDivElement>(null);
   const composerRef = useRef<HTMLDivElement>(null);
   const inlineComposerRef = useRef<HTMLDivElement>(null);
@@ -489,6 +496,8 @@ export default function SessionView({
     function onKey(e: KeyboardEvent) {
       const t = e.target as HTMLElement | null;
       if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+      if (!/^(ArrowRight|ArrowLeft|PageDown|PageUp|Home|End)$/.test(e.key)) return;
+      stopPlayback(); // manual navigation takes over from playback
       if (e.key === "ArrowRight" || e.key === "PageDown") { gotoLeaf(leafRef.current + 1); e.preventDefault(); }
       else if (e.key === "ArrowLeft" || e.key === "PageUp") { gotoLeaf(leafRef.current - 1); e.preventDefault(); }
       else if (e.key === "Home") { gotoLeaf(0); }
@@ -496,7 +505,7 @@ export default function SessionView({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [gotoLeaf]);
+  }, [gotoLeaf, stopPlayback]);
 
   // The passage the reader currently has highlighted in the essay (empty if none). Read when the
   // composer is opened so a highlight becomes the thought's attached quote — nothing is automatic.
@@ -667,6 +676,57 @@ export default function SessionView({
     },
     [thoughts, thoughtLeaf, targetOfThread, selOfAnchor, flashRange]
   );
+
+  // --- Playback ---
+  const PLAY_DWELL_MS = 4200; // how long we linger on each thought
+  const PLAY_FLASH_MS = 3600; // keep the essay line lit for most of that dwell
+
+  // Flash the essay passage a single thought points at (its own quote/anchor, or the one its
+  // reply thread inherits). Mirrors flashLeafTargets but scoped to one thought.
+  const flashThoughtTarget = useCallback(
+    (t: Thought, duration = PLAY_FLASH_MS) => {
+      const art = articleRef.current;
+      if (!art) return;
+      const target = targetOfThread(t);
+      if (!target) return;
+      if (target.kind === "anchor") {
+        const el = art.querySelector<HTMLElement>(selOfAnchor(target.value));
+        if (!el) return;
+        el.classList.add("anchor-flash");
+        window.setTimeout(() => el.classList.remove("anchor-flash"), duration);
+      } else {
+        const range = rangeOfText(art, target.value);
+        if (range) flashRange(range, duration);
+      }
+    },
+    [targetOfThread, selOfAnchor, flashRange]
+  );
+
+  const startPlayback = useCallback(() => {
+    if (thoughts.length === 0) return;
+    setStreamView("graph"); // show the map so the camera fly-to is visible
+    setPlayIndex(0);
+    setPlaying(true);
+  }, [thoughts.length]);
+
+  // The driver: for the current thought, turn the book to its page + flash its line, point the
+  // map's camera at its node, then schedule the next. Re-runs on each index change while playing.
+  useEffect(() => {
+    if (!playing) return;
+    const t = thoughts[playIndex];
+    if (!t) { setPlaying(false); return; }
+    const lf = thoughtLeaf.get(t.id) ?? 0;
+    gotoLeaf(lf, false);
+    const flash = window.setTimeout(() => flashThoughtTarget(t), 150);
+    setPlayFocusId(t.id); // hand the map the node to fly to
+    const advance = window.setTimeout(() => {
+      setPlayIndex((i) => {
+        if (i + 1 >= thoughts.length) { setPlaying(false); return i; }
+        return i + 1;
+      });
+    }, PLAY_DWELL_MS);
+    return () => { window.clearTimeout(flash); window.clearTimeout(advance); };
+  }, [playing, playIndex, thoughts, thoughtLeaf, gotoLeaf, flashThoughtTarget]);
 
   // Mobile only: after the essay flash, slide the thoughts drawer open and scroll it to the given
   // card (with the standard highlight). A no-op on desktop, where the stream is always visible.
@@ -938,13 +998,13 @@ export default function SessionView({
 
             <div className="book-foot">
               <div className="book-nav-cell">
-                <button className="book-turn" disabled={leaf === 0} onClick={() => gotoLeaf(leaf - 1)} aria-label="Previous page">
+                <button className="book-turn" disabled={leaf === 0} onClick={() => { stopPlayback(); gotoLeaf(leaf - 1); }} aria-label="Previous page">
                   <span className="arw">‹</span> Prev
                 </button>
               </div>
               <span className="book-folio">{leaf === 0 ? "Cover" : `${leaf} / ${Math.max(1, leafCount - 1)}`}</span>
               <div className="book-nav-cell">
-                <button className="book-turn" disabled={leaf >= leafCount - 1} onClick={() => gotoLeaf(leaf + 1)} aria-label="Next page">
+                <button className="book-turn" disabled={leaf >= leafCount - 1} onClick={() => { stopPlayback(); gotoLeaf(leaf + 1); }} aria-label="Next page">
                   Next <span className="arw">›</span>
                 </button>
               </div>
@@ -968,6 +1028,15 @@ export default function SessionView({
                 {streamView === "graph" ? "Concept map" : "Thought stream"}
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {/* Playback: walk the discussion thought-by-thought across the book + the map */}
+                <button
+                  onClick={() => (playing ? stopPlayback() : startPlayback())}
+                  className="stream-ghost"
+                  title={playing ? "Stop playback" : "Play the discussion thought by thought"}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 5, color: playing ? "var(--clay)" : undefined }}
+                >
+                  {playing ? `⏸ ${playIndex + 1}/${thoughts.length}` : "▶ Play"}
+                </button>
                 {/* Toggle the right panel between the thought list and the 3D concept map */}
                 <button
                   onClick={() => setStreamView((v) => (v === "stream" ? "graph" : "stream"))}
@@ -1110,7 +1179,7 @@ export default function SessionView({
             // Gutter around the map so it doesn't run into the window edges — breathing room on the
             // right and bottom (and a little left off the divider), mirroring the reading pane.
             <div style={{ flex: 1, minHeight: 0, position: "relative", padding: "4px 22px 22px 18px" }}>
-              <GraphView thoughts={thoughts} embedded />
+              <GraphView thoughts={thoughts} embedded focusNodeId={playFocusId} />
             </div>
           )}
 

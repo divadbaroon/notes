@@ -33,6 +33,8 @@ type ForceGraphInstance = {
   linkDirectionalParticleSpeed: (s: number) => ForceGraphInstance;
   onNodeClick: (fn: (n: GraphNode) => void) => ForceGraphInstance;
   onBackgroundClick: (fn: () => void) => ForceGraphInstance;
+  onEngineStop: (fn: () => void) => ForceGraphInstance;
+  zoomToFit: (ms?: number, px?: number, nodeFilter?: (n: GraphNode) => boolean) => ForceGraphInstance;
   d3Force: (name: string) => { distance?: (fn: (l: GraphLinkObj) => number) => void; strength?: (v: number | ((n: GraphNode) => number)) => void } | undefined;
   d3VelocityDecay: (v: number) => ForceGraphInstance;
   cameraPosition: (pos: { x: number; y: number; z: number }, lookAt?: unknown, ms?: number) => ForceGraphInstance;
@@ -48,10 +50,22 @@ type GraphLinkObj = {
   target: GraphNode | string;
 };
 
-export default function GraphView({ thoughts, embedded = false }: { thoughts: Thought[]; embedded?: boolean }) {
+export default function GraphView({
+  thoughts,
+  embedded = false,
+  focusNodeId = null,
+}: {
+  thoughts: Thought[];
+  embedded?: boolean;
+  // When set (e.g. driven by /session playback), fly the camera to this node and open its detail.
+  focusNodeId?: string | null;
+}) {
   const mountRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<ForceGraphInstance | null>(null);
   const [selected, setSelected] = useState<GraphNode | null>(null);
+  // True while an external focus (playback) owns the camera, so a resize won't fight it.
+  const focusActiveRef = useRef(false);
+  useEffect(() => { focusActiveRef.current = !!focusNodeId; }, [focusNodeId]);
 
   const data = useMemo(() => buildThoughtGraph(thoughts), [thoughts]);
 
@@ -69,6 +83,13 @@ export default function GraphView({ thoughts, embedded = false }: { thoughts: Th
     let disposed = false;
     const el = mountRef.current;
     if (!el) return;
+
+    // Framing padding for zoomToFit. On the embedded panel we use a negative padding proportional
+    // to the panel width: it zooms in past the bounding-sphere fit so the node cloud fills the
+    // landscape panel's width (z-depth would otherwise leave large side margins), and scales with
+    // the panel so it fills consistently whether the window is narrow or very wide.
+    const fitPadding = () => (embedded ? -Math.round(el.clientWidth * 0.15) : 60);
+    let didInitialFit = false;
 
     (async () => {
       const mod = await import("3d-force-graph");
@@ -106,20 +127,11 @@ export default function GraphView({ thoughts, embedded = false }: { thoughts: Th
         .linkDirectionalParticleSpeed(0.006)
         .onNodeClick((n) => {
           setSelected(n);
-          // ease the camera toward the clicked node
-          const g = graphRef.current;
-          const node = n as GraphNode & { x?: number; y?: number; z?: number };
-          if (g && node.x != null) {
-            const dist = 90;
-            const r = Math.hypot(node.x, node.y!, node.z!) || 1;
-            g.cameraPosition(
-              { x: node.x * (1 + dist / r), y: node.y! * (1 + dist / r), z: node.z! * (1 + dist / r) },
-              node,
-              900
-            );
-          }
+          moveCameraTo(graphRef.current, n, 900);
         })
         .onBackgroundClick(() => setSelected(null))
+        // A final fit once the simulation fully cools (safety net; may be many seconds out).
+        .onEngineStop(() => { if (!focusActiveRef.current) Graph.zoomToFit(600, fitPadding()); })
         .graphData(data);
 
       // Physics: give the heavy concept hubs a strong pull and let thoughts settle into orbits.
@@ -134,10 +146,23 @@ export default function GraphView({ thoughts, embedded = false }: { thoughts: Th
 
       graphRef.current = Graph;
 
+      // Frame the node cloud into the panel as the layout settles — the engine's own cooldown can
+      // be many seconds, so we fit on a short schedule (skipping if playback owns the camera).
+      const fit = () => { if (!disposed && graphRef.current && !focusActiveRef.current) { Graph.zoomToFit(600, fitPadding()); didInitialFit = true; } };
+      const fitTimers = [setTimeout(fit, 1400), setTimeout(fit, 3000)];
+      (Graph as unknown as { __fitTimers?: ReturnType<typeof setTimeout>[] }).__fitTimers = fitTimers;
+
       // Track the container's size (not just the window) so the canvas fits whether it's a
-      // full page or the /session side panel, and re-fits when the panel is toggled/resized.
+      // full page or the /session side panel. On resize, re-fit the node cloud to the new width
+      // (unless playback currently owns the camera) so it always fills the panel with padding.
+      let refitTimer: ReturnType<typeof setTimeout> | undefined;
       const ro = new ResizeObserver(() => {
-        if (el.clientWidth > 0 && el.clientHeight > 0) Graph.width(el.clientWidth).height(el.clientHeight);
+        if (el.clientWidth <= 0 || el.clientHeight <= 0) return;
+        Graph.width(el.clientWidth).height(el.clientHeight);
+        if (didInitialFit && !focusActiveRef.current) {
+          clearTimeout(refitTimer);
+          refitTimer = setTimeout(() => Graph.zoomToFit(400, fitPadding()), 120);
+        }
       });
       ro.observe(el);
       (Graph as unknown as { __ro?: ResizeObserver }).__ro = ro;
@@ -145,13 +170,37 @@ export default function GraphView({ thoughts, embedded = false }: { thoughts: Th
 
     return () => {
       disposed = true;
-      const g = graphRef.current as (ForceGraphInstance & { __ro?: ResizeObserver }) | null;
+      const g = graphRef.current as (ForceGraphInstance & { __ro?: ResizeObserver; __fitTimers?: ReturnType<typeof setTimeout>[] }) | null;
+      g?.__fitTimers?.forEach(clearTimeout);
       g?.__ro?.disconnect();
       g?._destructor?.();
       graphRef.current = null;
       if (el) el.innerHTML = "";
     };
   }, [data]);
+
+  // Playback / external focus: when focusNodeId changes, open that node's detail and fly to it.
+  // The graph may still be mounting or the node not yet positioned by the simulation, so poll
+  // briefly for a settled coordinate before moving the camera.
+  useEffect(() => {
+    if (!focusNodeId) return;
+    const node = data.nodes.find((n) => n.id === focusNodeId);
+    if (!node) return;
+    setSelected(node);
+    let tries = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const go = () => {
+      const g = graphRef.current;
+      const positioned = (node as GraphNode & { x?: number }).x != null;
+      if (g && positioned) {
+        moveCameraTo(g, node, 1100);
+        return;
+      }
+      if (tries++ < 45) timer = setTimeout(go, 120);
+    };
+    go();
+    return () => clearTimeout(timer);
+  }, [focusNodeId, data]);
 
   return (
     <div
@@ -277,6 +326,20 @@ export default function GraphView({ thoughts, embedded = false }: { thoughts: Th
         drag to orbit · scroll to zoom · click a node
       </div>
     </div>
+  );
+}
+
+// Ease the camera to sit a little way out from a node, looking at it. Concepts are big, so we
+// pull back farther for them than for a thought. No-op until the node has a settled position.
+function moveCameraTo(g: ForceGraphInstance | null, node: GraphNode, ms: number): void {
+  const n = node as GraphNode & { x?: number; y?: number; z?: number };
+  if (!g || n.x == null) return;
+  const dist = node.kind === "concept" ? 150 : 80;
+  const r = Math.hypot(n.x, n.y!, n.z!) || 1;
+  g.cameraPosition(
+    { x: n.x * (1 + dist / r), y: n.y! * (1 + dist / r), z: n.z! * (1 + dist / r) },
+    node,
+    ms
   );
 }
 
