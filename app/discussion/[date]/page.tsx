@@ -36,5 +36,5 @@ async function loadContent(date: string): Promise<{ essay: string; thoughts: Tho
 export default async function SessionDatePage({ params }: { params: Promise<{ date: string }> }) {
   const { date } = await params;
   const { essay, thoughts } = await loadContent(date);
-  return <SessionView essay={essay} fileThoughts={thoughts} />;
+  return <SessionView essay={essay} fileThoughts={thoughts} date={date} />;
 }

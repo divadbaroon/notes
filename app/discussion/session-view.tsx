@@ -112,6 +112,22 @@ function uuid(): string {
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+// "7-11-26" / "7-11-2026" (M-D-YY[YY], the /discussion/<date> URL slug) → "July 11, 2026".
+// Returns null if absent or unparseable, so callers can fall back to a default.
+function formatDateSlug(slug: string | undefined): string | null {
+  if (!slug) return null;
+  const m = slug.match(/^(\d{1,2})-(\d{1,2})-(\d{2,4})$/);
+  if (!m) return null;
+  const month = parseInt(m[1], 10);
+  const day = parseInt(m[2], 10);
+  let year = parseInt(m[3], 10);
+  if (year < 100) year += 2000;
+  const name = MONTHS_LONG[month - 1];
+  if (!name || day < 1 || day > 31) return null;
+  return `${name} ${day}, ${year}`;
+}
 
 // "2026-07-11T11:12:00" / "…T15:04:05.123Z" → "11 Jul 2026" (day, month, year — no time). Reads
 // the fields straight out of the string rather than reinterpreting it as a Date, so it stays
@@ -170,10 +186,15 @@ function caretPosFromPoint(x: number, y: number): { node: Node; offset: number }
 export default function SessionView({
   essay,
   fileThoughts,
+  date,
 }: {
   essay: string;
   fileThoughts: Thought[];
+  date?: string; // URL date slug, e.g. "7-11-26" — drives the header/cover date
 }) {
+  // Format the URL's date slug ("M-D-YY" or "M-D-YYYY") into "July 11, 2026". Falls back to the
+  // original July 11 session date if the slug is missing/unparseable.
+  const sessionDate = formatDateSlug(date) ?? "July 11, 2026";
   // localStorage additions only. Loaded after mount so the first client render matches the
   // server (file thoughts only) — no hydration mismatch.
   const [localThoughts, setLocalThoughts] = useState<Thought[]>([]);
@@ -935,7 +956,7 @@ export default function SessionView({
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <header className="session-header">
-        <span className="session-title">Discussion III · July 11, 2026 · Mill Mountain</span>
+        <span className="session-title">Discussion III · {sessionDate} · Mill Mountain</span>
         <span className="session-eyebrow">reading &amp; thoughts</span>
         <button
           className="session-hamburger"
@@ -984,7 +1005,7 @@ export default function SessionView({
 
               {leaf === 0 && (
                 <div className="book-cover">
-                  <div className="book-cover-eyebrow"><span>Discussion&nbsp;III</span><span className="r" /><span>July&nbsp;11,&nbsp;2026</span></div>
+                  <div className="book-cover-eyebrow"><span>Discussion&nbsp;III</span><span className="r" /><span>{sessionDate.replace(/ /g, "\u00A0")}</span></div>
                   <h1 className="book-cover-title">Augmenting Human Cognition with Computers</h1>
                   <div className="book-cover-lab">Papert Lab</div>
                   <div className="book-cover-spacer" />
