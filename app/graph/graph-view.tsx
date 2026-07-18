@@ -154,7 +154,18 @@ export default function GraphView({ thoughts, embedded = false }: { thoughts: Th
   }, [data]);
 
   return (
-    <div style={{ position: "relative", height: embedded ? "100%" : "100dvh", width: "100%", overflow: "hidden", background: "#0f0d0b" }}>
+    <div
+      style={{
+        position: "relative",
+        height: embedded ? "100%" : "100dvh",
+        width: "100%",
+        overflow: "hidden",
+        background: "#0f0d0b",
+        // Embedded in the /session panel it reads as an inset card, framed like the reading pane.
+        borderRadius: embedded ? 12 : 0,
+        border: embedded ? "1px solid var(--card-border)" : undefined,
+      }}
+    >
       <div ref={mountRef} style={{ position: "absolute", inset: 0 }} />
 
       {/* Title + framing — dropped when embedded (the panel header already gives context) */}

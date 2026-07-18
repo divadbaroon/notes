@@ -127,6 +127,15 @@ body {
 .session-stream { flex-grow: 38; flex-basis: 0; min-width: 0; display: flex; flex-direction: column; border-left: 1px solid var(--card-border); background: var(--bg); overflow: hidden; }
 .session-backdrop { display: none; }
 
+/* Graph mode on wider screens: the 3D concept map wants room, so drop the 1280px reading cap and
+   let the map pane absorb all the extra width while the book stays at a comfortable reading
+   measure. Below this breakpoint the default capped 62/38 split still applies. */
+@media (min-width: 1100px) {
+  .session-panes.session-graph-mode { max-width: none; }
+  .session-panes.session-graph-mode .session-book { flex: 0 0 auto; width: min(620px, 46vw); }
+  .session-panes.session-graph-mode .session-stream { flex: 1 1 auto; }
+}
+
 /* mobile first-load nudge toward the top-right thoughts menu (rendered only on phones) */
 .thoughts-hint { position: fixed; top: 56px; right: 12px; z-index: 70; max-width: 220px; text-align: left; padding: 9px 13px; background: var(--accent); color: var(--bg); border: none; border-radius: 11px; font: 500 12.5px/1.35 var(--font-sans); box-shadow: 0 10px 26px rgba(61,38,21,0.30); cursor: pointer; animation: thoughts-hint-in 260ms var(--ease-out) both; }
 .thoughts-hint::before { content: ""; position: absolute; top: -5px; right: 20px; width: 11px; height: 11px; background: var(--accent); border-radius: 2px; transform: rotate(45deg); }

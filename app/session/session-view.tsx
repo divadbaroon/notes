@@ -897,7 +897,7 @@ export default function SessionView({
         </button>
       )}
 
-      <div className="session-panes">
+      <div className={`session-panes${streamView === "graph" ? " session-graph-mode" : ""}`}>
         {/* Left: the essay, as a page-turnable book (full screen on mobile) */}
         <main className="session-book">
           <div className="book-leaf">
@@ -1107,7 +1107,9 @@ export default function SessionView({
           {/* Graph mode: the 3D "centers of gravity" concept map fills the panel body. Fed the
               live thought set (seed + local additions) so new thoughts appear as orbiting nodes. */}
           {streamView === "graph" && (
-            <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
+            // Gutter around the map so it doesn't run into the window edges — breathing room on the
+            // right and bottom (and a little left off the divider), mirroring the reading pane.
+            <div style={{ flex: 1, minHeight: 0, position: "relative", padding: "4px 22px 22px 18px" }}>
               <GraphView thoughts={thoughts} embedded />
             </div>
           )}
