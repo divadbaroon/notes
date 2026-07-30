@@ -1,0 +1,308 @@
+[
+  {
+    "id": "moonwara-1",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:21:00",
+    "text": "The tax collector only thinks from his own task and perspective. The expert designer thinks broader — about the product, not profit. There's a gap between the client's stated need and the researcher's broader view.",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "more likely it's a tax collector wanting to tabulate taxes more efficiently, and having some vague notion that MDC may be able to help"
+  },
+  {
+    "id": "david-1",
+    "author": "David",
+    "timestamp": "2026-07-25T11:22:00",
+    "text": "Experts are boxed inside their own expertise. Novel encounters — like meeting a tax collector — give them insight into another world's problems where their expertise can now apply. That's why talking to many different people matters.",
+    "essayAnchor": null,
+    "parentId": "moonwara-1",
+    "quote": null
+  },
+  {
+    "id": "moonwara-2",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:23:00",
+    "text": "The tax collector is one data point. A researcher needs many data points to find the actual need or solution.",
+    "essayAnchor": null,
+    "parentId": "david-1",
+    "quote": null
+  },
+  {
+    "id": "moonwara-3",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:25:00",
+    "text": "Different professionals need numerals in different ways. The design has to consider all of them and make something general enough for everyone to adopt.",
+    "essayAnchor": null,
+    "parentId": "moonwara-2",
+    "quote": null
+  },
+  {
+    "id": "moonwara-4",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:26:00",
+    "text": "Bangla, English, and Arabic numerals have closely correlated mappings — knowing one makes the others easy to capture. Languages don't map over like that.",
+    "essayAnchor": null,
+    "parentId": "moonwara-3",
+    "quote": null
+  },
+  {
+    "id": "david-2",
+    "author": "David",
+    "timestamp": "2026-07-25T11:28:00",
+    "text": "Hard to say without being in the moment, in that world at that time. I'm missing the perspective.",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "Could you, as a designer, have made that leap?"
+  },
+  {
+    "id": "moonwara-5",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:29:00",
+    "text": "How does the work happen? It comes from needs — needs that we don't have.",
+    "essayAnchor": null,
+    "parentId": "david-2",
+    "quote": null
+  },
+  {
+    "id": "david-3",
+    "author": "David",
+    "timestamp": "2026-07-25T11:30:00",
+    "text": "We don't have the life experiences those people had when they made it. Looking back, it's easy to say 'yeah, I would have made that leap.'",
+    "essayAnchor": null,
+    "parentId": "moonwara-5",
+    "quote": null
+  },
+  {
+    "id": "david-4",
+    "author": "David",
+    "timestamp": "2026-07-25T11:32:00",
+    "text": "Like the data-points idea: gather as many as possible, assess all needs, and have an expert foundation you can apply to everyone's needs in one solution.",
+    "essayAnchor": null,
+    "parentId": "moonwara-2",
+    "quote": "Is there a creative practice in which such steps would be likely to occur?"
+  },
+  {
+    "id": "david-5",
+    "author": "David",
+    "timestamp": "2026-07-25T11:33:00",
+    "text": "But like we said last time — you often don't know the end goal. You take small steps, and over time small steps turn into a novel discovery.",
+    "essayAnchor": null,
+    "parentId": "david-4",
+    "quote": null
+  },
+  {
+    "id": "moonwara-6",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:35:00",
+    "text": "Creative practice is flexibility — loosening the identified rules. To make a new numeral system you must flex away from Roman numerals, or nothing new comes. Same in research: follow only existing methods even when they don't fit your needs, and no new methods emerge.",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "Is there a creative practice in which such steps would be likely to occur?"
+  },
+  {
+    "id": "david-6",
+    "author": "David",
+    "timestamp": "2026-07-25T11:36:00",
+    "text": "Can you develop that flexibility alone in your room? You'd be stuck with your own ideas, no external stimuli from different sources. Is communicating with others necessary for the creative process?",
+    "essayAnchor": null,
+    "parentId": "moonwara-6",
+    "quote": null
+  },
+  {
+    "id": "moonwara-7",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:37:00",
+    "text": "Obviously yes — that's why people collaborate.",
+    "essayAnchor": null,
+    "parentId": "david-6",
+    "quote": null
+  },
+  {
+    "id": "david-7",
+    "author": "David",
+    "timestamp": "2026-07-25T11:38:00",
+    "text": "'Likely to occur' — you can only give yourself the best odds to go the right direction. Create the conditions: collaborate, be in the right environment, talk to the right people. For the creative process, environment is everything.",
+    "essayAnchor": null,
+    "parentId": "moonwara-7",
+    "quote": null
+  },
+  {
+    "id": "david-8",
+    "author": "David",
+    "timestamp": "2026-07-25T11:40:00",
+    "text": "Does the design process differ from the creative process? Maybe the design process is what comes after you figure out what to work toward — which is what the creative process is for.",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "what design process could take you from Roman numerals to Hindu-Arabic numerals?"
+  },
+  {
+    "id": "moonwara-8",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:41:00",
+    "text": "Design process means you're making an artifact. Creative process is just thinking — no system or product yet.",
+    "essayAnchor": null,
+    "parentId": "david-8",
+    "quote": null
+  },
+  {
+    "id": "david-9",
+    "author": "David",
+    "timestamp": "2026-07-25T11:42:00",
+    "text": "The creative process informs what artifact you want; the design process is the map to achieve it. Not entirely sure though.",
+    "essayAnchor": null,
+    "parentId": "moonwara-8",
+    "quote": null
+  },
+  {
+    "id": "moonwara-9",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:44:00",
+    "text": "Design and real-world need come together. The mathematical insight serves real-world needs — business, communication, community, the economic system, survival. The design is not the survival part, but they're connected.",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "the Hindu-Arabic numerals aren't just an extraordinary piece of design. They're also an extraordinary mathematical insight."
+  },
+  {
+    "id": "moonwara-10",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:45:00",
+    "text": "The position of each numeral being significant — that part is the design.",
+    "essayAnchor": null,
+    "parentId": "moonwara-9",
+    "quote": "the meaning of a numeral actually changes, depending on its position within a number"
+  },
+  {
+    "id": "moonwara-11",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:46:00",
+    "text": "Which one comes first — the design or the mathematical insight? That was my question here.",
+    "essayAnchor": null,
+    "parentId": "moonwara-9",
+    "quote": null
+  },
+  {
+    "id": "moonwara-12",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:48:00",
+    "text": "If the numerals had been designed differently, would the mathematical insight be different or the same? One affects the other — I think it would change the mathematical system.",
+    "essayAnchor": null,
+    "parentId": "moonwara-11",
+    "quote": null
+  },
+  {
+    "id": "moonwara-13",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:50:00",
+    "text": "The essay assumes expertise in both domains. But what if a person just has interest in both — more in one, less in the other? With curiosity they keep learning and become expert. They're not expert by birth; the process makes them expert in both.",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "would be both one of the great mathematical geniuses who ever lived, and one of the great design geniuses who ever lived"
+  },
+  {
+    "id": "david-10",
+    "author": "David",
+    "timestamp": "2026-07-25T11:52:00",
+    "text": "Interesting that their example is a single person great at both. In reality it's usually multiple people with strong traits, curious about each other, coming together. The Hindu-Arabic numerals weren't created by one person.",
+    "essayAnchor": null,
+    "parentId": "moonwara-13",
+    "quote": null
+  },
+  {
+    "id": "moonwara-14",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:53:00",
+    "text": "Created by a person — adapted by a community.",
+    "essayAnchor": null,
+    "parentId": "david-10",
+    "quote": null
+  },
+  {
+    "id": "david-11",
+    "author": "David",
+    "timestamp": "2026-07-25T11:54:00",
+    "text": "Curiosity — it always comes back to this, through all of our readings.",
+    "essayAnchor": null,
+    "parentId": "moonwara-13",
+    "quote": null
+  },
+  {
+    "id": "moonwara-15",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:55:00",
+    "text": "Without curiosity in a domain you won't explore or find anything there. Da Vinci had curiosity in both mathematics and design/art — that's what provides the knowledge foundation to even have the possibility.",
+    "essayAnchor": null,
+    "parentId": "david-11",
+    "quote": null
+  },
+  {
+    "id": "david-12",
+    "author": "David",
+    "timestamp": "2026-07-25T11:56:00",
+    "text": "So without curiosity, you're limited to doing what's already been done.",
+    "essayAnchor": null,
+    "parentId": "moonwara-15",
+    "quote": null
+  },
+  {
+    "id": "moonwara-16",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:57:00",
+    "text": "Traditional math teaching taught math without connecting it to anything else, so students never got curious. Math felt boring — that's why many people drop math after school.",
+    "essayAnchor": null,
+    "parentId": "david-12",
+    "quote": null
+  },
+  {
+    "id": "david-13",
+    "author": "David",
+    "timestamp": "2026-07-25T11:58:00",
+    "text": "So the best way to learn math is to tie it to the interest of the learner?",
+    "essayAnchor": null,
+    "parentId": "moonwara-16",
+    "quote": null
+  },
+  {
+    "id": "moonwara-17",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T11:59:00",
+    "text": "Teach not only how to solve the problem — teach how the concept came about and how it relates to the real world first. Then how to solve it. Then the rules.",
+    "essayAnchor": null,
+    "parentId": "david-13",
+    "quote": null
+  },
+  {
+    "id": "david-14",
+    "author": "David",
+    "timestamp": "2026-07-25T12:00:00",
+    "text": "When school explains what problem a thing was created to solve, it clicks a lot more. You appreciate it — it feels worth learning.",
+    "essayAnchor": null,
+    "parentId": "moonwara-17",
+    "quote": null
+  },
+  {
+    "id": "moonwara-18",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T12:01:00",
+    "text": "Some school systems used to be pure rule-following. When they later added a brief explanation of how it was discovered, going back and solving the problems became faster.",
+    "essayAnchor": null,
+    "parentId": "david-14",
+    "quote": null
+  },
+  {
+    "id": "david-15",
+    "author": "David",
+    "timestamp": "2026-07-25T12:03:00",
+    "text": "It's a feedback loop: first improve your own understanding, and once it reaches a threshold you can begin to have original, world-class insights. Without the underlying understanding, you can't.",
+    "essayAnchor": null,
+    "parentId": null,
+    "quote": "capable of an insight-through-making loop which used the evolving system of numerals to improve not just their own mathematical ideas, but to have original, world-class insights into mathematics"
+  },
+  {
+    "id": "moonwara-19",
+    "author": "Moonwara",
+    "timestamp": "2026-07-25T12:04:00",
+    "text": "Curiosity gives you questions; you try to find the answer. When the existing theories don't have it, you invent something. And to know that, you have to know the existing.",
+    "essayAnchor": null,
+    "parentId": "david-15",
+    "quote": null
+  }
+]
